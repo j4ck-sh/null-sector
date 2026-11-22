@@ -1,0 +1,1754 @@
+
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+const basePath = import.meta.env.BASE_URL;
+
+function withBase(path: string): string {
+  const base = basePath.endsWith("/")
+    ? basePath
+    : `${basePath}/`;
+
+  return `${base}${path.replace(/^\/+/, "")}`;
+}
+
+const entries = (await getCollection("learning"))
+  .filter((entry) => !entry.data.draft)
+  .sort(
+    (a, b) =>
+      b.data.publishedAt.getTime() -
+      a.data.publishedAt.getTime()
+  );
+
+const categoryLabels = {
+  "certification-training": "CERTIFICATION TRAINING",
+  "learning-path": "LEARNING PATH",
+  course: "COURSE",
+  lab: "PRACTICAL LAB",
+} as const;
+
+const certificationLabels = {
+  "not-applicable": "NOT APPLICABLE",
+  "not-attempted": "NOT ATTEMPTED",
+  preparing: "PREPARING FOR ASSESSMENT",
+  earned: "EARNED",
+} as const;
+
+type LearningEntry = (typeof entries)[number];
+
+function getCompletionLabel(entry: LearningEntry): string {
+  const { status, category } = entry.data;
+
+  if (status === "planned") return "PLANNED";
+  if (status === "in-progress") return "IN PROGRESS";
+
+  if (category === "course") return "COURSE COMPLETED";
+  if (category === "lab") return "LAB COMPLETED";
+
+  return "TRAINING COMPLETED";
+}
+
+const learningPrinciples = [
+  {
+    number: "01",
+    title: "Understand the systems",
+    description:
+      "Build an understanding of how technologies work before examining how they fail or can be compromised.",
+  },
+  {
+    number: "02",
+    title: "Practise the techniques",
+    description:
+      "Connect theoretical learning with guided exercises, labs, and documented technical workflows.",
+  },
+  {
+    number: "03",
+    title: "Document the process",
+    description:
+      "Record technical concepts, challenges, limitations, and lessons learned in a way that can be revisited and shared.",
+  },
+  {
+    number: "04",
+    title: "Apply the knowledge",
+    description:
+      "Use acquired knowledge to inform research questions, future practical work, and continued learning.",
+  },
+];
+
+const completedRecords = entries.filter(
+  (entry) => entry.data.status === "completed"
+).length;
+
+const earnedCertifications = entries.filter(
+  (entry) => entry.data.certificationStatus === "earned"
+).length;
+
+const sal1 = entries.find(
+  (entry) => entry.id === "tryhackme-sal1"
+);
+
+const filterOptions = [
+  { value: "all", label: "ALL RECORDS" },
+  {
+    value: "certification-training",
+    label: "CERTIFICATION TRAINING",
+  },
+  { value: "learning-path", label: "LEARNING PATHS" },
+  { value: "course", label: "COURSES" },
+  { value: "lab", label: "PRACTICAL LABS" },
+] as const;
+
+const activeCategories = new Set(
+  entries.map((entry) => entry.data.category)
+);
+
+const availableFilters = filterOptions.filter(
+  (option) =>
+    option.value === "all" ||
+    activeCategories.has(option.value)
+);
+---
+
+<BaseLayout
+  title="Learning & Certifications | NULL SECTOR"
+  description="Explore NULL SECTOR's documented cybersecurity learning, completed courses, certification preparation, and technical reflections. Training completion and earned credentials are distinguished clearly."
+>
+  <main id="main-content" class="learning-page">
+    <!-- HERO -->
+    <section class="learning-hero" aria-labelledby="page-title">
+      <div class="container">
+        <div class="hero-topline">
+          <span class="eyebrow">
+            [ NS / KNOWLEDGE ARCHIVE ]
+          </span>
+
+          <span class="system-label">
+            DIRECTORY: /LEARNING/
+          </span>
+        </div>
+
+        <div class="hero-content">
+          <div class="hero-title-block">
+            <p class="hero-command">
+              <span>root@nullsector</span>:~$ cat learning.log
+            </p>
+
+            <h1 id="page-title">
+              Learning<span class="green">_</span><br />
+              <span class="title-secondary">
+                & Certifications.
+              </span>
+            </h1>
+          </div>
+
+          <div class="hero-aside">
+            <span class="aside-label">
+              [ CONTINUOUS DEVELOPMENT ]
+            </span>
+
+            <p>
+              Learning isn't just a collection of badges.
+              It's a record of concepts understood, skills
+              practised, and questions worth investigating
+              further.
+            </p>
+
+            <span
+              class="aside-decoration"
+              aria-hidden="true"
+            >
+              ▪ ▪ ▪ ▪ ▪ ▪ ▪ ▪
+            </span>
+          </div>
+        </div>
+
+        <div
+          class="hero-stats"
+          aria-label="Learning archive overview"
+        >
+          <div class="stat">
+            <span class="stat-number">
+              {String(entries.length).padStart(2, "0")}
+            </span>
+
+            <span class="stat-label">
+              PUBLISHED RECORDS
+            </span>
+          </div>
+
+          <div class="stat">
+            <span class="stat-number">
+              {String(completedRecords).padStart(2, "0")}
+            </span>
+
+            <span class="stat-label">
+              COMPLETED LEARNING
+            </span>
+          </div>
+
+          <div class="stat">
+            <span class="stat-number">
+              {String(earnedCertifications).padStart(2, "0")}
+            </span>
+
+            <span class="stat-label">
+              CERTIFICATIONS EARNED
+            </span>
+          </div>
+
+          <div class="stat stat-message">
+            <span class="stat-message-heading">
+              <span
+                class="status-dot"
+                aria-hidden="true"
+              ></span>
+              ARCHIVE ACTIVE
+            </span>
+
+            <span class="stat-message-copy">
+              Records expand as learning continues.
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ARCHIVE -->
+    <section
+      class="archive-section learning-section"
+      aria-labelledby="archive-title"
+    >
+      <div class="container">
+        <div class="section-heading-row">
+          <div>
+            <span class="eyebrow">
+              [ 01 / TRAINING RECORDS ]
+            </span>
+
+            <h2 id="archive-title">
+              The learning archive<span class="green">.</span>
+            </h2>
+          </div>
+
+          <p>
+            Courses, learning paths, and certification
+            preparation, documented with clear distinctions
+            between completed training, course completion,
+            and earned credentials.
+          </p>
+        </div>
+
+        <div class="archive-toolbar">
+          <div
+            class="filter-controls"
+            role="group"
+            aria-label="Filter learning records"
+          >
+            {
+              availableFilters.map((option) => (
+                <button
+                  type="button"
+                  class:list={[
+                    "filter-button",
+                    { "is-active": option.value === "all" },
+                  ]}
+                  data-learning-filter={option.value}
+                  aria-pressed={
+                    option.value === "all"
+                      ? "true"
+                      : "false"
+                  }
+                >
+                  {option.label}
+
+                  {option.value === "all" && (
+                    <span>
+                      {String(entries.length).padStart(2, "0")}
+                    </span>
+                  )}
+                </button>
+              ))
+            }
+          </div>
+
+          <span
+            class="toolbar-counter"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            SHOWING
+            <span id="visible-count">
+              {entries.length}
+            </span>
+            RECORDS
+          </span>
+        </div>
+
+        <div
+          class="archive-list"
+          id="learning-records"
+        >
+          {
+            entries.map((entry, index) => {
+              const data = entry.data;
+              const number = String(index + 1).padStart(
+                3,
+                "0"
+              );
+
+              const articleUrl = withBase(
+                `/learning/${entry.id}/`
+              );
+
+              const completionLabel =
+                getCompletionLabel(entry);
+
+              return (
+                <article
+                  class="archive-entry"
+                  data-learning-entry
+                  data-category={data.category}
+                  aria-labelledby={`entry-${entry.id}`}
+                >
+                  <div
+                    class="entry-index-column"
+                    aria-hidden="true"
+                  >
+                    <span class="entry-number">
+                      {number}
+                    </span>
+
+                    <span class="entry-index-line"></span>
+                  </div>
+
+                  <div class="entry-main">
+                    <div class="entry-meta">
+                      <span class="entry-provider">
+                        {data.provider.toUpperCase()}
+                      </span>
+
+                      <span
+                        class="entry-separator"
+                        aria-hidden="true"
+                      >
+                        /
+                      </span>
+
+                      <span class="entry-category">
+                        {categoryLabels[data.category]}
+                      </span>
+                    </div>
+
+                    <h3 id={`entry-${entry.id}`}>
+                      <a
+                        class="entry-title-link"
+                        href={articleUrl}
+                      >
+                        {data.title}
+                      </a>
+                    </h3>
+
+                    <p class="entry-summary">
+                      {data.description}
+                    </p>
+
+                    {data.topics.length > 0 && (
+                      <div
+                        class="entry-topics"
+                        aria-label="Topics covered"
+                      >
+                        {data.topics.map((topic) => (
+                          <span class="tag">
+                            {topic}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <details class="entry-details">
+                      <summary>
+                        <span>
+                          EXPLORE LEARNING RECORD
+                        </span>
+
+                        <span
+                          class="details-symbol"
+                          aria-hidden="true"
+                        >
+                          +
+                        </span>
+                      </summary>
+
+                      <div class="entry-details-content">
+                        <div class="detail-grid">
+                          <div>
+                            <span class="detail-label">
+                              LEARNING STATUS
+                            </span>
+
+                            <strong>
+                              {completionLabel}
+                            </strong>
+                          </div>
+
+                          <div>
+                            <span class="detail-label">
+                              CERTIFICATION
+                            </span>
+
+                            <strong>
+                              {
+                                certificationLabels[
+                                  data.certificationStatus
+                                ]
+                              }
+                            </strong>
+                          </div>
+
+                          <div>
+                            <span class="detail-label">
+                              PROVIDER
+                            </span>
+
+                            <strong>
+                              {data.provider}
+                            </strong>
+                          </div>
+
+                          <div>
+                            <span class="detail-label">
+                              REVIEW
+                            </span>
+
+                            <strong>
+                              PUBLISHED
+                            </strong>
+                          </div>
+                        </div>
+
+                        {data.skills.length > 0 && (
+                          <div class="detail-skills">
+                            <span class="detail-label">
+                              DOCUMENTED SKILLS
+                            </span>
+
+                            <p>
+                              {data.skills.join(" / ")}
+                            </p>
+                          </div>
+                        )}
+
+                        <a
+                          class="review-link"
+                          href={articleUrl}
+                        >
+                          READ FULL TECHNICAL REVIEW
+
+                          <span aria-hidden="true">
+                            ↗
+                          </span>
+                        </a>
+                      </div>
+                    </details>
+                  </div>
+
+                  <div class="entry-status-column">
+                    <span
+                      class:list={[
+                        "entry-status",
+                        `status-${data.status}`,
+                      ]}
+                    >
+                      <span
+                        class="status-indicator"
+                        aria-hidden="true"
+                      ></span>
+
+                      {completionLabel}
+                    </span>
+
+                    <span class="entry-record-id">
+                      NS-LRN-{number}
+                    </span>
+                  </div>
+                </article>
+              );
+            })
+          }
+        </div>
+
+        <p
+          class="archive-empty"
+          id="archive-empty"
+          hidden={entries.length > 0}
+        >
+          {entries.length === 0
+            ? "No published learning records are available yet."
+            : "No learning records match the selected filter."}
+        </p>
+
+        <div class="archive-bottom">
+          <span>
+            END OF CURRENT RECORDS
+          </span>
+
+          <span aria-hidden="true">
+            [ EOF ]
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- METHODOLOGY -->
+    <section
+      class="approach-section learning-section"
+      aria-labelledby="approach-title"
+    >
+      <div class="container">
+        <div class="section-heading-row">
+          <div>
+            <span class="eyebrow">
+              [ 02 / METHODOLOGY ]
+            </span>
+
+            <h2 id="approach-title">
+              How I approach
+              <span class="green"> learning.</span>
+            </h2>
+          </div>
+
+          <p>
+            A cycle of understanding, guided practice,
+            documentation, and reflection.
+          </p>
+        </div>
+
+        <div class="principles-grid">
+          {
+            learningPrinciples.map((principle) => (
+              <article class="principle">
+                <span class="principle-number">
+                  /{principle.number}
+                </span>
+
+                <h3>{principle.title}</h3>
+
+                <p>
+                  {principle.description}
+                </p>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- CREDENTIALS -->
+    <section
+      class="certification-section learning-section"
+      aria-labelledby="certification-title"
+    >
+      <div class="container certification-layout">
+        <div class="certification-copy">
+          <span class="eyebrow">
+            [ 03 / CREDENTIALS ]
+          </span>
+
+          <h2 id="certification-title">
+            Training and certification are
+            <span class="blue">
+              {" "}different milestones.
+            </span>
+          </h2>
+
+          <p>
+            Completing a course or learning path
+            demonstrates progress through training.
+            Earning a certification requires meeting
+            the credential provider's assessment
+            requirements.
+          </p>
+
+          <p>
+            This archive distinguishes those achievements
+            rather than treating them as interchangeable.
+            A course completion certificate is not
+            automatically a professional certification.
+          </p>
+        </div>
+
+        <div class="credential-terminal">
+          <div class="terminal-top">
+            <span>
+              credential-status.txt
+            </span>
+
+            <span>
+              READ ONLY
+            </span>
+          </div>
+
+          <div class="terminal-body">
+            <p class="terminal-command">
+              <span class="prompt">$</span>
+              cat sal1.status
+            </p>
+
+            {
+              sal1 ? (
+                <div class="terminal-data">
+                  <div>
+                    <span>PROVIDER</span>
+                    <strong>
+                      {sal1.data.provider}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>TRAINING</span>
+                    <strong class="value-green">
+                      {getCompletionLabel(sal1)}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>CERTIFICATION</span>
+                    <strong class="value-blue">
+                      {
+                        certificationLabels[
+                          sal1.data.certificationStatus
+                        ]
+                      }
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>REVIEW</span>
+                    <strong>PUBLISHED</strong>
+                  </div>
+                </div>
+              ) : (
+                <p class="terminal-unavailable">
+                  No published SAL1 record is currently
+                  available.
+                </p>
+              )
+            }
+
+            <p class="terminal-end">
+              <span class="prompt">$</span>
+              <span
+                class="cursor"
+                aria-hidden="true"
+              ></span>
+            </p>
+          </div>
+
+          <div class="terminal-bottom">
+            <span>
+              NULL SECTOR / LEARNING
+            </span>
+
+            <span>
+              DATA: CONTENT COLLECTION
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NEXT DIRECTORY -->
+    <section
+      class="learning-footer"
+      aria-labelledby="learning-footer-title"
+    >
+      <div class="container footer-content">
+        <span class="eyebrow">
+          [ NEXT DIRECTORY ]
+        </span>
+
+        <h2 id="learning-footer-title">
+          From learning to
+          <span class="green">
+            {" "}investigation.
+          </span>
+        </h2>
+
+        <p>
+          Technical learning often leads to new research
+          questions. Explore the systems, methods, and
+          security topics I'm investigating.
+        </p>
+
+        <a
+          class="button button-secondary"
+          href={withBase("/research/")}
+        >
+          EXPLORE RESEARCH
+
+          <span aria-hidden="true">
+            ↗
+          </span>
+        </a>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script>
+  function initializeLearningFilters() {
+    const archive = document.querySelector<HTMLElement>(
+      "#learning-records"
+    );
+
+    if (!archive) return;
+
+    const buttons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>(
+        "[data-learning-filter]"
+      )
+    );
+
+    const entries = Array.from(
+      archive.querySelectorAll<HTMLElement>(
+        "[data-learning-entry]"
+      )
+    );
+
+    const count =
+      document.querySelector<HTMLElement>("#visible-count");
+
+    const empty =
+      document.querySelector<HTMLElement>("#archive-empty");
+
+    function applyFilter(filter: string) {
+      let visible = 0;
+
+      for (const entry of entries) {
+        const matches =
+          filter === "all" ||
+          entry.dataset.category === filter;
+
+        entry.hidden = !matches;
+
+        if (matches) {
+          visible += 1;
+        }
+      }
+
+      for (const button of buttons) {
+        const selected =
+          button.dataset.learningFilter === filter;
+
+        button.classList.toggle(
+          "is-active",
+          selected
+        );
+
+        button.setAttribute(
+          "aria-pressed",
+          String(selected)
+        );
+      }
+
+      if (count) {
+        count.textContent = String(visible);
+      }
+
+      if (empty) {
+        empty.hidden = visible !== 0;
+      }
+    }
+
+    if (archive.dataset.filtersReady === "true") {
+      return;
+    }
+
+    archive.dataset.filtersReady = "true";
+
+    for (const button of buttons) {
+      button.addEventListener("click", () => {
+        applyFilter(
+          button.dataset.learningFilter ?? "all"
+        );
+      });
+    }
+
+    applyFilter("all");
+  }
+
+  initializeLearningFilters();
+
+  document.addEventListener(
+    "astro:page-load",
+    initializeLearningFilters
+  );
+</script>
+
+<style>
+  .learning-page {
+    background: var(--bg);
+    color: var(--text);
+    overflow: clip;
+  }
+
+  .learning-page .green {
+    color: var(--green);
+  }
+
+  .learning-page .blue {
+    color: var(--blue);
+  }
+
+  .learning-page a:focus-visible,
+  .learning-page button:focus-visible,
+  .learning-page summary:focus-visible {
+    outline: 2px solid var(--blue-bright);
+    outline-offset: 4px;
+  }
+
+  /* Hero */
+
+  .learning-hero {
+    padding: clamp(4rem, 8vw, 7rem) 0 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero-topline,
+  .hero-content {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+
+  .hero-topline {
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: clamp(2.5rem, 5vw, 3.5rem);
+  }
+
+  .system-label {
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+  }
+
+  .hero-content {
+    align-items: end;
+    margin-bottom: clamp(3rem, 5vw, 4rem);
+  }
+
+  .hero-title-block {
+    min-width: 0;
+  }
+
+  .hero-command {
+    margin: 0 0 1.5rem;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    overflow-wrap: anywhere;
+  }
+
+  .hero-command span {
+    color: var(--green);
+  }
+
+  .learning-hero h1 {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: clamp(2.7rem, 6vw, 6rem);
+    letter-spacing: -0.08em;
+    line-height: 1.08;
+    overflow-wrap: break-word;
+  }
+
+  .title-secondary {
+    color: var(--text);
+  }
+
+  .hero-aside {
+    width: min(100%, 340px);
+    flex: 0 0 auto;
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--border-strong);
+  }
+
+  .aside-label {
+    color: var(--blue);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+  }
+
+  .hero-aside p {
+    margin: 1rem 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.8;
+  }
+
+  .aside-decoration {
+    color: var(--green-dark);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.3em;
+  }
+
+  /* Statistics */
+
+  .hero-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-top: 1px solid var(--border);
+  }
+
+  .stat {
+    display: flex;
+    min-width: 0;
+    min-height: 125px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 1.5rem;
+    border-right: 1px solid var(--border);
+  }
+
+  .stat:first-child {
+    padding-left: 0;
+  }
+
+  .stat:last-child {
+    border-right: 0;
+  }
+
+  .stat-number {
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: clamp(2rem, 3vw, 2.5rem);
+    font-weight: 600;
+    letter-spacing: -0.08em;
+    line-height: 1;
+  }
+
+  .stat-label {
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+  }
+
+  .stat-message-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: var(--green);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+  }
+
+  .stat-message-heading .status-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    flex: 0 0 auto;
+    background: currentColor;
+  }
+
+  .stat-message-copy {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1.6;
+  }
+
+  /* Shared section headings */
+
+  .learning-section {
+    padding: clamp(4.5rem, 8vw, 7rem) 0;
+  }
+
+  .section-heading-row {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 0.65fr);
+    align-items: end;
+    gap: 3rem;
+    margin-bottom: 3rem;
+  }
+
+  .section-heading-row h2 {
+    margin: 1rem 0 0;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    letter-spacing: -0.045em;
+    line-height: 1.15;
+  }
+
+  .section-heading-row > p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.8;
+  }
+
+  /* Archive toolbar */
+
+  .archive-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem 1.5rem;
+    padding: 1rem 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .filter-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .filter-button {
+    min-height: 44px;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.03em;
+    line-height: 1.5;
+    cursor: pointer;
+    transition:
+      background var(--transition-fast),
+      border-color var(--transition-fast),
+      color var(--transition-fast);
+  }
+
+  .filter-button:hover {
+    background: var(--bg-panel);
+    color: var(--text);
+  }
+
+  .filter-button.is-active {
+    border-color: var(--border-strong);
+    background: var(--bg-panel);
+    color: var(--green);
+  }
+
+  .filter-button span {
+    margin-left: 0.4rem;
+    color: var(--text-dim);
+  }
+
+  .toolbar-counter {
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+
+  .toolbar-counter span {
+    margin-inline: 0.35rem;
+    color: var(--green);
+  }
+
+  /* Archive entries */
+
+  .archive-list {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .archive-entry {
+    display: grid;
+    grid-template-columns:
+      70px
+      minmax(0, 1fr)
+      minmax(145px, 190px);
+    gap: clamp(1rem, 2.5vw, 2rem);
+    padding: clamp(2rem, 4vw, 2.75rem) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .archive-entry:last-child {
+    border-bottom: 0;
+  }
+
+  .archive-entry[hidden],
+  .archive-empty[hidden] {
+    display: none !important;
+  }
+
+  .entry-index-column {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .entry-number {
+    color: var(--green);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+
+  .entry-index-line {
+    width: 1px;
+    min-height: 50px;
+    flex: 1;
+    background: var(--border);
+  }
+
+  .entry-main {
+    min-width: 0;
+  }
+
+  .entry-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-bottom: 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    line-height: 1.6;
+  }
+
+  .entry-provider {
+    color: var(--blue);
+  }
+
+  .entry-separator,
+  .entry-category {
+    color: var(--text-dim);
+  }
+
+  .entry-main h3 {
+    margin: 0 0 1rem;
+    font-size: clamp(1.45rem, 2.5vw, 2.2rem);
+    letter-spacing: -0.04em;
+    line-height: 1.25;
+    overflow-wrap: break-word;
+  }
+
+  .entry-title-link {
+    color: inherit;
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  .entry-title-link:hover {
+    color: var(--green);
+  }
+
+  .entry-summary {
+    max-width: 690px;
+    margin: 0 0 1.5rem;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.8;
+  }
+
+  .entry-topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .entry-status-column {
+    display: flex;
+    min-width: 0;
+    align-items: flex-end;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1rem;
+    text-align: right;
+  }
+
+  .entry-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    color: var(--green);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    line-height: 1.6;
+  }
+
+  .status-in-progress {
+    color: var(--blue);
+  }
+
+  .status-planned {
+    color: var(--text-muted);
+  }
+
+  .status-indicator {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    flex: 0 0 auto;
+    background: currentColor;
+  }
+
+  .entry-record-id {
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.03em;
+  }
+
+  /* Expandable records */
+
+  .entry-details {
+    max-width: 690px;
+    border-top: 1px solid var(--border);
+  }
+
+  .entry-details summary {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    color: var(--green);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .entry-details summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .details-symbol {
+    color: var(--blue);
+    font-size: 1.1rem;
+    transition: transform var(--transition-fast);
+  }
+
+  .entry-details[open] .details-symbol {
+    transform: rotate(45deg);
+  }
+
+  .entry-details-content {
+    padding: 0.5rem 0 1.5rem;
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+    padding: 1.25rem;
+    border: 1px solid var(--border);
+    background: var(--bg-raised);
+  }
+
+  .detail-grid > div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .detail-label {
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+  }
+
+  .detail-grid strong {
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+
+  .detail-skills {
+    margin-bottom: 1.5rem;
+  }
+
+  .detail-skills p {
+    margin: 0.5rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    line-height: 1.8;
+  }
+
+  .review-link {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    color: var(--green);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1.6;
+    text-decoration: none;
+  }
+
+  .review-link:hover {
+    color: var(--blue);
+  }
+
+  .archive-empty {
+    margin: 0;
+    padding: 2rem 0;
+    color: var(--text-muted);
+  }
+
+  .archive-bottom {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-top: 1rem;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+  }
+
+  /* Learning methodology */
+
+  .approach-section {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-raised);
+  }
+
+  .principles-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1px;
+    border: 1px solid var(--border);
+    background: var(--border);
+  }
+
+  .principle {
+    min-width: 0;
+    min-height: 250px;
+    padding: clamp(1.25rem, 2.5vw, 1.75rem);
+    background: var(--bg-raised);
+  }
+
+  .principle-number {
+    display: block;
+    margin-bottom: 2.5rem;
+    color: var(--green);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  .principle h3 {
+    margin: 0 0 1rem;
+    font-size: 1.2rem;
+    line-height: 1.35;
+  }
+
+  .principle p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    line-height: 1.8;
+  }
+
+  /* Credentials */
+
+  .certification-layout {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(3rem, 7vw, 7rem);
+  }
+
+  .certification-copy {
+    min-width: 0;
+  }
+
+  .certification-copy h2 {
+    margin: 1.25rem 0 1.5rem;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    letter-spacing: -0.045em;
+    line-height: 1.15;
+    overflow-wrap: break-word;
+  }
+
+  .certification-copy p {
+    margin: 0 0 1.25rem;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.8;
+  }
+
+  .credential-terminal {
+    min-width: 0;
+    border: 1px solid var(--border-strong);
+    background: var(--bg-inset);
+  }
+
+  .terminal-top,
+  .terminal-bottom {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    padding: 0.85rem 1rem;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    line-height: 1.6;
+  }
+
+  .terminal-top {
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-panel);
+  }
+
+  .terminal-bottom {
+    border-top: 1px solid var(--border);
+  }
+
+  .terminal-body {
+    padding: clamp(1.25rem, 3vw, 1.75rem);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+
+  .terminal-command {
+    margin: 0 0 1.5rem;
+    color: var(--text);
+    overflow-wrap: anywhere;
+  }
+
+  .prompt {
+    margin-right: 0.5rem;
+    color: var(--green);
+  }
+
+  .terminal-data {
+    display: grid;
+    gap: 1rem;
+    padding: 1.25rem 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .terminal-data > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    min-width: 0;
+  }
+
+  .terminal-data span {
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    line-height: 1.6;
+  }
+
+  .terminal-data strong {
+    min-width: 0;
+    color: var(--text);
+    font-size: 0.7rem;
+    font-weight: 500;
+    line-height: 1.6;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+
+  .terminal-data .value-green {
+    color: var(--green);
+  }
+
+  .terminal-data .value-blue {
+    color: var(--blue);
+  }
+
+  .terminal-end {
+    margin: 1.5rem 0 0;
+  }
+
+  .cursor {
+    display: inline-block;
+    width: 7px;
+    height: 13px;
+    background: var(--green);
+    vertical-align: -2px;
+    animation:
+      learning-cursor-blink 1.1s steps(1, end) infinite;
+  }
+
+  .terminal-unavailable {
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+
+  @keyframes learning-cursor-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  /* Closing */
+
+  .learning-footer {
+    padding: clamp(4rem, 8vw, 6rem) 0;
+    border-top: 1px solid var(--border);
+    background: var(--bg-raised);
+  }
+
+  .footer-content {
+    text-align: center;
+  }
+
+  .footer-content h2 {
+    margin: 1.25rem 0;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    letter-spacing: -0.045em;
+    line-height: 1.2;
+  }
+
+  .footer-content p {
+    max-width: 560px;
+    margin: 0 auto 2rem;
+    color: var(--text-muted);
+    line-height: 1.8;
+  }
+
+  /* Compact desktop */
+
+  @media (max-width: 1100px) {
+    .hero-content {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .hero-aside {
+      width: min(100%, 560px);
+    }
+
+    .principles-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* Tablet */
+
+  @media (max-width: 850px) {
+    .section-heading-row,
+    .certification-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .section-heading-row {
+      gap: 1.25rem;
+    }
+
+    .section-heading-row > p {
+      max-width: 650px;
+    }
+
+    .hero-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .stat:nth-child(2) {
+      border-right: 0;
+    }
+
+    .stat:nth-child(-n + 2) {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .archive-entry {
+      grid-template-columns: 40px minmax(0, 1fr);
+      gap: 1rem;
+    }
+
+    .entry-status-column {
+      grid-column: 2;
+      align-items: flex-start;
+      flex-direction: row;
+      flex-wrap: wrap;
+      text-align: left;
+    }
+
+    .entry-status {
+      justify-content: flex-start;
+    }
+  }
+
+  /* Mobile */
+
+  @media (max-width: 600px) {
+    .learning-hero {
+      padding-top: 3rem;
+    }
+
+    .hero-topline {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-content {
+      margin-bottom: 3rem;
+    }
+
+    .learning-hero h1 {
+      font-size: clamp(2.25rem, 9vw, 4rem);
+    }
+
+    .hero-aside {
+      padding-left: 1rem;
+    }
+
+    .stat {
+      min-height: 110px;
+      padding: 1rem;
+    }
+
+    .stat:first-child {
+      padding-left: 1rem;
+    }
+
+    .stat-number {
+      font-size: 2rem;
+    }
+
+    .stat-label {
+      font-size: 0.6rem;
+    }
+
+    .learning-section {
+      padding-block: 4rem;
+    }
+
+    .section-heading-row {
+      margin-bottom: 2rem;
+    }
+
+    .archive-toolbar {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .filter-controls {
+      width: 100%;
+    }
+
+    .archive-entry {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.25rem;
+    }
+
+    .entry-index-column {
+      align-items: center;
+      flex-direction: row;
+    }
+
+    .entry-index-line {
+      width: auto;
+      height: 1px;
+      min-height: 0;
+    }
+
+    .entry-status-column {
+      grid-column: 1;
+    }
+
+    .detail-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .principles-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .principle {
+      min-height: 190px;
+    }
+
+    .principle-number {
+      margin-bottom: 1.5rem;
+    }
+
+    .terminal-data > div {
+      flex-wrap: wrap;
+    }
+
+    .terminal-data strong {
+      text-align: left;
+    }
+  }
+
+  /* Narrow mobile */
+
+  @media (max-width: 380px) {
+    .learning-hero h1 {
+      font-size: 10.5vw;
+    }
+
+    .hero-command {
+      font-size: 0.7rem;
+    }
+
+    .filter-button {
+      font-size: 0.6rem;
+      padding-inline: 0.7rem;
+    }
+
+    .stat {
+      padding: 0.8rem;
+    }
+
+    .stat:first-child {
+      padding-left: 0.8rem;
+    }
+
+    .stat-message-heading {
+      font-size: 0.62rem;
+    }
+
+    .terminal-top,
+    .terminal-bottom {
+      font-size: 0.58rem;
+    }
+  }
+
+  /* Reduced motion */
+
+  @media (prefers-reduced-motion: reduce) {
+    .learning-page *,
+    .learning-page *::before,
+    .learning-page *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+</style>

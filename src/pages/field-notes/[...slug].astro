@@ -1,0 +1,1596 @@
+
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import {
+  getCollection,
+  render,
+  type CollectionEntry,
+} from "astro:content";
+
+type FieldNoteEntry = CollectionEntry<"fieldNotes">;
+
+export async function getStaticPaths() {
+  const entries = await getCollection(
+    "fieldNotes",
+    ({ data }) => !data.draft
+  );
+
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+interface Props {
+  entry: FieldNoteEntry;
+}
+
+const { entry } = Astro.props;
+const data = entry.data;
+const { Content, headings } = await render(entry);
+
+const categoryLabels = {
+  observations: "Observations",
+  "lab-notes": "Lab Notes",
+  "tool-notes": "Tool Notes",
+  troubleshooting: "Troubleshooting",
+  concepts: "Concepts",
+  "reference-notes": "Reference Notes",
+} as const;
+
+const activityLabels = {
+  "source-review": "SOURCE REVIEW",
+  "guided-exercise": "GUIDED EXERCISE",
+  "independent-lab": "INDEPENDENT LAB",
+  "controlled-experiment": "CONTROLLED EXPERIMENT",
+  "technical-explanation": "TECHNICAL EXPLANATION",
+  troubleshooting: "TROUBLESHOOTING",
+  observation: "OBSERVATION",
+} as const;
+
+const evidenceLabels = {
+  "public-source": "PUBLIC SOURCE",
+  guided: "GUIDED",
+  "controlled-lab": "CONTROLLED LAB",
+  simulated: "SIMULATED",
+  theoretical: "THEORETICAL",
+  "direct-observation": "DIRECT OBSERVATION",
+  mixed: "MIXED",
+} as const;
+
+const statusLabels = {
+  planned: "PLANNED",
+  "in-progress": "IN PROGRESS",
+  completed: "COMPLETED",
+} as const;
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+
+/*
+ * Chapter headings are numbered in the Markdown itself.
+ * Preserve the authored text without generating new numbers.
+ */
+const chapters = headings
+  .filter((heading) => heading.depth === 2)
+  .map((heading) => ({
+    id: heading.slug,
+    title: heading.text,
+    type: "chapter" as const,
+  }));
+
+const [
+  publishedLearning,
+  publishedResearch,
+  publishedNotes,
+] = await Promise.all([
+  getCollection("learning", ({ data }) => !data.draft),
+  getCollection("research", ({ data }) => !data.draft),
+  getCollection("fieldNotes", ({ data }) => !data.draft),
+]);
+
+const relatedLearning = publishedLearning.filter(
+  (item) => data.relatedLearning.includes(item.id)
+);
+
+const relatedResearch = publishedResearch.filter(
+  (item) => data.relatedResearch.includes(item.id)
+);
+
+const relatedNotes = publishedNotes.filter(
+  (item) =>
+    item.id !== entry.id &&
+    data.relatedNotes.includes(item.id)
+);
+
+const relatedRecords = [
+  ...relatedLearning.map((item) => ({
+    id: item.id,
+    type: "LEARNING",
+    title: item.data.title,
+    detail: statusLabels[item.data.status],
+    href: `/learning/${item.id}/`,
+  })),
+  ...relatedResearch.map((item) => ({
+    id: item.id,
+    type: "RESEARCH",
+    title: item.data.title,
+    detail: statusLabels[item.data.status],
+    href: `/research/${item.id}/`,
+  })),
+  ...relatedNotes.map((item) => ({
+    id: item.id,
+    type: "FIELD NOTE",
+    title: item.data.title,
+    detail: categoryLabels[item.data.category],
+    href: `/field-notes/${item.id}/`,
+  })),
+];
+
+const hasRelated = relatedRecords.length > 0;
+
+const navigation = [
+  {
+    id: "context",
+    title: "Context & Activity",
+    type: "structured" as const,
+  },
+  ...chapters,
+  {
+    id: "limitations",
+    title: "Limitations",
+    type: "structured" as const,
+  },
+  {
+    id: "references",
+    title: "References",
+    type: "structured" as const,
+  },
+  ...(hasRelated
+    ? [
+        {
+          id: "related",
+          title: "Related Records",
+          type: "structured" as const,
+        },
+      ]
+    : []),
+];
+
+const provenanceExplanation = {
+  "source-review":
+    "This note documents a review of source material. Referenced material should not be interpreted as independently reproduced or experimentally verified.",
+  "guided-exercise":
+    "This note concerns a guided exercise. Following a walkthrough does not establish independent discovery or an independently solved challenge.",
+  "independent-lab":
+    "This note is classified as an independent lab. The recorded environment, actions and limitations define the scope of that claim.",
+  "controlled-experiment":
+    "This note describes a controlled experiment. Its observations apply to the documented conditions and should not be generalized without further evidence.",
+  "technical-explanation":
+    "This note explains a technical concept. Explanatory examples and commands do not, by themselves, establish that those actions were performed.",
+  troubleshooting:
+    "This note documents troubleshooting activity. Proposed steps, attempted steps and confirmed resolutions should be distinguished in the narrative.",
+  observation:
+    "This note records an observation. The context and evidence classification define whether it was directly observed or obtained from another source.",
+} as const;
+---
+
+<BaseLayout
+  title={`${data.title} | Field Notes | NULL SECTOR`}
+  description={data.description}
+  contentType="article"
+  publishedTime={data.publishedAt.toISOString()}
+  modifiedTime={data.updatedAt?.toISOString()}
+>
+  <main id="main-content" class="note-article">
+    <header class="article-hero">
+      <div class="container">
+        <div class="hero-topline">
+          <a href="/field-notes/" class="back-link">
+            <span aria-hidden="true">←</span>
+            FIELD NOTES ARCHIVE
+          </a>
+
+          <span class="system-label">
+            NULL SECTOR / FIELD_NOTES.RECORD
+          </span>
+        </div>
+
+        <div class="hero-grid">
+          <div class="hero-main">
+            <div class="record-label">
+              <span
+                class="record-square"
+                aria-hidden="true"
+              ></span>
+
+              TECHNICAL FIELD NOTE
+
+              <span class="record-separator">/</span>
+
+              {categoryLabels[data.category]}
+            </div>
+
+            <h1>{data.title}</h1>
+
+            <p class="hero-description">
+              {data.description}
+            </p>
+
+            {data.topics.length > 0 && (
+              <div
+                class="hero-tags"
+                aria-label="Note topics"
+              >
+                {data.topics.map((topic) => (
+                  <span class="topic-tag">
+                    {topic}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <aside
+            class="record-panel"
+            aria-label="Field Note metadata"
+          >
+            <div class="panel-header">
+              <span>NOTE.METADATA</span>
+              <span aria-hidden="true">[+]</span>
+            </div>
+
+            <dl class="metadata-list">
+              <div>
+                <dt>CATEGORY</dt>
+                <dd>{categoryLabels[data.category]}</dd>
+              </div>
+
+              <div>
+                <dt>STATUS</dt>
+                <dd class={`status-${data.status}`}>
+                  {statusLabels[data.status]}
+                </dd>
+              </div>
+
+              <div>
+                <dt>ACTIVITY</dt>
+                <dd>{activityLabels[data.activityType]}</dd>
+              </div>
+
+              <div>
+                <dt>EVIDENCE BASIS</dt>
+                <dd>{evidenceLabels[data.evidenceType]}</dd>
+              </div>
+
+              <div>
+                <dt>PUBLISHED</dt>
+                <dd>
+                  <time
+                    datetime={data.publishedAt
+                      .toISOString()
+                      .slice(0, 10)}
+                  >
+                    {formatDate(data.publishedAt)}
+                  </time>
+                </dd>
+              </div>
+
+              {data.updatedAt && (
+                <div>
+                  <dt>UPDATED</dt>
+                  <dd>
+                    <time
+                      datetime={data.updatedAt
+                        .toISOString()
+                        .slice(0, 10)}
+                    >
+                      {formatDate(data.updatedAt)}
+                    </time>
+                  </dd>
+                </div>
+              )}
+
+              {data.completedAt && (
+                <div>
+                  <dt>COMPLETED</dt>
+                  <dd>
+                    <time
+                      datetime={data.completedAt
+                        .toISOString()
+                        .slice(0, 10)}
+                    >
+                      {formatDate(data.completedAt)}
+                    </time>
+                  </dd>
+                </div>
+              )}
+            </dl>
+
+            <div class="panel-footer">
+              <span>CONTEXT / SOURCE / LIMITS</span>
+              <span
+                class="panel-light"
+                aria-hidden="true"
+              ></span>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </header>
+
+    <div class="container article-layout">
+      <aside
+        class="chapter-sidebar"
+        aria-label="Article navigation"
+      >
+        <div class="sidebar-inner">
+          <div class="sidebar-heading">
+            <span
+              class="sidebar-square"
+              aria-hidden="true"
+            ></span>
+            <span>NOTE INDEX</span>
+          </div>
+
+          <nav aria-label="Field Note sections">
+            {navigation.map((item) => (
+              <a
+                href={`#${item.id}`}
+                data-chapter-link
+                class:list={[
+                  "chapter-link",
+                  {
+                    "chapter-link-structured":
+                      item.type === "structured",
+                  },
+                ]}
+              >
+                {item.type === "structured" && (
+                  <span
+                    class="chapter-marker"
+                    aria-hidden="true"
+                  >
+                    ◆
+                  </span>
+                )}
+
+                <span class="chapter-title">
+                  {item.title}
+                </span>
+              </a>
+            ))}
+          </nav>
+
+          <div class="sidebar-footer">
+            FIELD NOTES / {entry.id.toUpperCase()}
+          </div>
+        </div>
+      </aside>
+
+      <article class="article-main">
+        <div class="mobile-index">
+          <label for="mobile-chapter-select">
+            [ EXPLORE THE ARTICLE ]
+          </label>
+
+          <select
+            id="mobile-chapter-select"
+            aria-label="Jump to Field Note section"
+          >
+            {navigation.map((item) => (
+              <option value={item.id}>
+                {item.type === "structured"
+                  ? `[ ${item.title.toUpperCase()} ]`
+                  : item.title}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <section
+          id="context"
+          class="record-section"
+          aria-labelledby="context-heading"
+        >
+          <div class="section-topline">
+            <span class="eyebrow">
+              [ NOTE PROVENANCE ]
+            </span>
+            <span class="section-code">
+              CONTEXT.01
+            </span>
+          </div>
+
+          <h2 id="context-heading">
+            Context &amp; activity<span
+              class="accent-green"
+            >.</span>
+          </h2>
+
+          <p class="section-intro">
+            This record identifies its source context,
+            technical environment and the activity
+            being described.
+          </p>
+
+          <dl class="context-grid">
+            <div>
+              <dt>CONTEXT</dt>
+              <dd>{data.context}</dd>
+            </div>
+
+            <div>
+              <dt>ENVIRONMENT</dt>
+              <dd>{data.environment}</dd>
+            </div>
+
+            <div>
+              <dt>ACTIVITY SUMMARY</dt>
+              <dd>{data.activitySummary}</dd>
+            </div>
+
+            <div>
+              <dt>EVIDENCE CLASSIFICATION</dt>
+              <dd>{evidenceLabels[data.evidenceType]}</dd>
+            </div>
+          </dl>
+
+          <div class="provenance-notice">
+            <span class="notice-label">
+              INTERPRETATION / ACTIVITY SCOPE
+            </span>
+
+            <p>
+              {provenanceExplanation[data.activityType]}
+            </p>
+          </div>
+
+          {data.tools.length > 0 && (
+            <div class="tools-section">
+              <h3>TOOLS &amp; TECHNOLOGIES</h3>
+
+              <div class="tools-list">
+                {data.tools.map((tool) => (
+                  <span class="tool-tag">
+                    {tool}
+                  </span>
+                ))}
+              </div>
+
+              <p class="tools-disclaimer">
+                Listed tools identify technologies
+                relevant to this note; their inclusion
+                does not independently establish
+                execution or proficiency.
+              </p>
+            </div>
+          )}
+        </section>
+
+        <section
+          class="record-section article-content"
+          aria-label="Technical narrative"
+        >
+          <div class="section-topline">
+            <span class="eyebrow">
+              [ TECHNICAL NARRATIVE ]
+            </span>
+            <span class="section-code">
+              NOTES.BODY
+            </span>
+          </div>
+
+          <div class="prose">
+            <Content />
+          </div>
+        </section>
+
+        <section
+          id="limitations"
+          class="record-section"
+          aria-labelledby="limitations-heading"
+        >
+          <div class="section-topline">
+            <span class="eyebrow">
+              [ INTERPRETATION BOUNDARIES ]
+            </span>
+            <span class="section-code">
+              SCOPE.LIMITS
+            </span>
+          </div>
+
+          <h2 id="limitations-heading">
+            Limitations<span
+              class="accent-blue"
+            >.</span>
+          </h2>
+
+          {data.limitations.length > 0 ? (
+            <ul class="limitations-list">
+              {data.limitations.map((limitation) => (
+                <li>{limitation}</li>
+              ))}
+            </ul>
+          ) : (
+            <p class="record-empty">
+              No limitations are listed in the
+              structured metadata. This does not
+              establish that the note is complete,
+              independently verified or free
+              from uncertainty.
+            </p>
+          )}
+        </section>
+
+        <section
+          id="references"
+          class="record-section"
+          aria-labelledby="references-heading"
+        >
+          <div class="section-topline">
+            <span class="eyebrow">
+              [ SOURCE MATERIAL ]
+            </span>
+            <span class="section-code">
+              REFERENCES
+            </span>
+          </div>
+
+          <h2 id="references-heading">
+            References<span
+              class="accent-green"
+            >.</span>
+          </h2>
+
+          {data.references.length > 0 ? (
+            <ol class="references-list">
+              {data.references.map((reference) => (
+                <li>
+                  <a
+                    href={reference.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {reference.label}
+                    <span aria-hidden="true">↗</span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p class="record-empty">
+              No external references are listed
+              for this note.
+            </p>
+          )}
+        </section>
+
+        {hasRelated && (
+          <section
+            id="related"
+            class="record-section related-section"
+            aria-labelledby="related-heading"
+          >
+            <div class="section-topline">
+              <span class="eyebrow">
+                [ CONTINUE EXPLORING ]
+              </span>
+              <span class="section-code">
+                RELATED.RECORDS
+              </span>
+            </div>
+
+            <h2 id="related-heading">
+              Related records<span
+                class="accent-blue"
+              >.</span>
+            </h2>
+
+            <div class="related-grid">
+              {relatedRecords.map((item) => (
+                <a
+                  class="related-card"
+                  href={item.href}
+                >
+                  <span>{item.type}</span>
+                  <strong>{item.title}</strong>
+                  <small>{item.detail}</small>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <footer class="article-footer">
+          <span>
+            NULL SECTOR / FIELD NOTES /
+            {" "}
+            {entry.id.toUpperCase()}
+          </span>
+
+          <a href="/field-notes/">
+            ← BACK TO FIELD NOTES
+          </a>
+        </footer>
+      </article>
+    </div>
+  </main>
+</BaseLayout>
+
+<script>
+  function initFieldNoteArticle() {
+    const article =
+      document.querySelector<HTMLElement>(
+        ".note-article"
+      );
+
+    if (!article) return;
+
+    if (article.dataset.navigationReady === "true") {
+      return;
+    }
+
+    article.dataset.navigationReady = "true";
+
+    const links = Array.from(
+      article.querySelectorAll<HTMLAnchorElement>(
+        "[data-chapter-link]"
+      )
+    );
+
+    const mobileSelect =
+      article.querySelector<HTMLSelectElement>(
+        "#mobile-chapter-select"
+      );
+
+    const sections = links
+      .map((link) => {
+        const id = link.hash.slice(1);
+        const element = document.getElementById(id);
+
+        return element ? { id, element } : null;
+      })
+      .filter(
+        (
+          item
+        ): item is {
+          id: string;
+          element: HTMLElement;
+        } => item !== null
+      );
+
+    if (!sections.length) return;
+
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    );
+
+    let activeId = "";
+    let animationFrame = 0;
+
+    function setActive(id: string) {
+      if (!sections.some((item) => item.id === id)) {
+        return;
+      }
+
+      if (activeId === id) return;
+
+      activeId = id;
+
+      links.forEach((link) => {
+        const active = link.hash === `#${id}`;
+
+        link.classList.toggle(
+          "is-active",
+          active
+        );
+
+        if (active) {
+          link.setAttribute(
+            "aria-current",
+            "location"
+          );
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+
+      if (mobileSelect) {
+        mobileSelect.value = id;
+      }
+    }
+
+    /*
+     * Select the last section whose top has passed
+     * the activation line.
+     *
+     * This keeps the active chapter stable between
+     * headings and synchronises both navigation UIs.
+     */
+    function updateActiveFromScroll() {
+      animationFrame = 0;
+
+      const activationOffset = Math.min(
+        180,
+        window.innerHeight * 0.25
+      );
+
+      let currentId = sections[0].id;
+
+      for (const section of sections) {
+        const top =
+          section.element.getBoundingClientRect().top;
+
+        if (top <= activationOffset) {
+          currentId = section.id;
+        } else {
+          break;
+        }
+      }
+
+      setActive(currentId);
+    }
+
+    function scheduleUpdate() {
+      if (animationFrame) return;
+
+      animationFrame = window.requestAnimationFrame(
+        updateActiveFromScroll
+      );
+    }
+
+    function goToSection(id: string) {
+      const target = document.getElementById(id);
+
+      if (!target) return;
+
+      setActive(id);
+
+      target.scrollIntoView({
+        behavior: reducedMotion.matches
+          ? "auto"
+          : "smooth",
+        block: "start",
+      });
+
+      history.replaceState(
+        null,
+        "",
+        `#${encodeURIComponent(id)}`
+      );
+    }
+
+    mobileSelect?.addEventListener(
+      "change",
+      () => {
+        if (!mobileSelect.value) return;
+
+        goToSection(mobileSelect.value);
+      }
+    );
+
+    links.forEach((link) => {
+      link.addEventListener("click", () => {
+        setActive(link.hash.slice(1));
+      });
+    });
+
+    window.addEventListener(
+      "scroll",
+      scheduleUpdate,
+      { passive: true }
+    );
+
+    window.addEventListener(
+      "resize",
+      scheduleUpdate,
+      { passive: true }
+    );
+
+    window.addEventListener(
+      "hashchange",
+      () => {
+        const id = decodeURIComponent(
+          window.location.hash.slice(1)
+        );
+
+        if (
+          sections.some(
+            (section) => section.id === id
+          )
+        ) {
+          setActive(id);
+        }
+
+        scheduleUpdate();
+      }
+    );
+
+    const initialId = decodeURIComponent(
+      window.location.hash.slice(1)
+    );
+
+    if (
+      initialId &&
+      sections.some(
+        (section) => section.id === initialId
+      )
+    ) {
+      setActive(initialId);
+    } else {
+      setActive(sections[0].id);
+    }
+
+    scheduleUpdate();
+  }
+
+  document.addEventListener(
+    "astro:page-load",
+    initFieldNoteArticle
+  );
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      initFieldNoteArticle,
+      { once: true }
+    );
+  } else {
+    initFieldNoteArticle();
+  }
+</script>
+
+<style>
+  .note-article {
+    background: var(--bg);
+  }
+
+  .article-hero {
+    padding: clamp(3rem, 6vw, 6rem) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: clamp(3rem, 6vw, 5rem);
+  }
+
+  .back-link,
+  .system-label,
+  .record-label,
+  .topic-tag,
+  .panel-header,
+  .panel-footer,
+  .metadata-list dt,
+  .metadata-list dd {
+    font-family: var(--font-mono);
+  }
+
+  .back-link {
+    color: var(--green);
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+  }
+
+  .back-link:hover {
+    color: var(--text);
+  }
+
+  .system-label {
+    color: var(--text-dim);
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1.35fr)
+      minmax(270px, 0.65fr);
+    align-items: end;
+    gap: clamp(2rem, 5vw, 6rem);
+  }
+
+  .record-label {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin-bottom: 1.5rem;
+    color: var(--blue);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+  }
+
+  .record-square,
+  .sidebar-square {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 auto;
+    background: var(--green);
+  }
+
+  .record-separator {
+    color: var(--text-dim);
+  }
+
+  .hero-main h1 {
+    max-width: 900px;
+    margin-bottom: 1.5rem;
+    font-family: var(--font-mono);
+    font-size: clamp(2.6rem, 5.5vw, 5rem);
+    letter-spacing: -0.075em;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+  }
+
+  .hero-description {
+    max-width: 720px;
+    margin-bottom: 1.5rem;
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    line-height: 1.75;
+  }
+
+  .hero-tags,
+  .tools-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .topic-tag,
+  .tool-tag {
+    padding: 0.35rem 0.6rem;
+    border: 1px solid var(--border);
+    background: var(--bg-panel);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+  }
+
+  .record-panel {
+    min-width: 0;
+    border: 1px solid var(--border-strong);
+    background: var(--bg-inset);
+  }
+
+  .panel-header,
+  .panel-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    color: var(--text-dim);
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+  }
+
+  .panel-header {
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-header span:last-child {
+    color: var(--green);
+  }
+
+  .panel-footer {
+    border-top: 1px solid var(--border);
+  }
+
+  .panel-light {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 auto;
+    background: var(--green);
+  }
+
+  .metadata-list {
+    margin: 0;
+  }
+
+  .metadata-list > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.95rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .metadata-list > div:last-child {
+    border-bottom: 0;
+  }
+
+  .metadata-list dt {
+    color: var(--text-dim);
+    font-size: 0.6rem;
+    letter-spacing: 0.04em;
+  }
+
+  .metadata-list dd {
+    margin: 0;
+    color: var(--text);
+    font-size: 0.7rem;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+
+  .metadata-list dd.status-completed {
+    color: var(--green);
+  }
+
+  .metadata-list dd.status-in-progress {
+    color: var(--blue);
+  }
+
+  .article-layout {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    align-items: start;
+    gap: clamp(2rem, 5vw, 5rem);
+    padding-top: clamp(3rem, 6vw, 6rem);
+    padding-bottom: clamp(5rem, 8vw, 8rem);
+  }
+
+  .chapter-sidebar {
+    position: sticky;
+    top: 2rem;
+    align-self: start;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color:
+      var(--border-strong)
+      transparent;
+  }
+
+  .sidebar-inner {
+    border-left: 1px solid var(--border-strong);
+  }
+
+  .sidebar-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.65rem 1rem 1rem;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+  }
+
+  .chapter-sidebar nav {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chapter-link {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.65rem 1rem;
+    border-left: 2px solid transparent;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    line-height: 1.5;
+    text-decoration: none;
+    transition:
+      color var(--transition-fast),
+      border-color var(--transition-fast),
+      background var(--transition-fast);
+  }
+
+  .chapter-link:hover {
+    color: var(--text);
+    background: var(--bg-panel);
+  }
+
+  .chapter-link.is-active {
+    border-left-color: var(--green);
+    color: var(--green);
+    background: var(--bg-panel);
+  }
+
+  .chapter-link-structured {
+    color: var(--blue);
+    font-size: 0.64rem;
+    letter-spacing: 0.035em;
+  }
+
+  .chapter-marker {
+    flex: 0 0 auto;
+    color: var(--blue);
+    font-size: 0.5rem;
+  }
+
+  .chapter-title {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .sidebar-footer {
+    padding: 1.5rem 1rem 0.5rem;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    overflow-wrap: anywhere;
+  }
+
+  .article-main {
+    min-width: 0;
+  }
+
+  .mobile-index {
+    display: none;
+  }
+
+  .record-section {
+    margin-bottom: clamp(4rem, 7vw, 6rem);
+    scroll-margin-top: 2rem;
+  }
+
+  .section-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .section-code {
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+  }
+
+  .record-section > h2,
+  .related-section h2 {
+    margin-bottom: 1.5rem;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    letter-spacing: -0.055em;
+  }
+
+  .accent-green {
+    color: var(--green);
+  }
+
+  .accent-blue {
+    color: var(--blue);
+  }
+
+  .section-intro {
+    max-width: 700px;
+    margin-bottom: 2rem;
+    color: var(--text-muted);
+  }
+
+  .context-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    margin: 0;
+    border: 1px solid var(--border);
+    background: var(--border);
+  }
+
+  .context-grid > div {
+    min-width: 0;
+    padding: 1.5rem;
+    background: var(--bg-raised);
+  }
+
+  .context-grid dt,
+  .tools-section h3 {
+    margin-bottom: 0.75rem;
+    color: var(--blue);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+  }
+
+  .context-grid dd {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+  }
+
+  .provenance-notice {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    border-left: 2px solid var(--blue);
+    background: var(--bg-raised);
+  }
+
+  .notice-label {
+    display: block;
+    margin-bottom: 0.75rem;
+    color: var(--blue);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+  }
+
+  .provenance-notice p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.75;
+  }
+
+  .tools-section {
+    margin-top: 2rem;
+  }
+
+  .tools-disclaimer {
+    margin-top: 1rem;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    line-height: 1.7;
+  }
+
+  .article-content .prose {
+    min-width: 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.85;
+  }
+
+  .article-content .prose :global(h2) {
+    margin: 3.5rem 0 1.5rem;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    letter-spacing: -0.04em;
+    line-height: 1.3;
+    scroll-margin-top: 2rem;
+    overflow-wrap: anywhere;
+  }
+
+  .article-content .prose :global(h2:first-child) {
+    margin-top: 0;
+  }
+
+  .article-content .prose :global(h3) {
+    margin: 2.5rem 0 1rem;
+    color: var(--text);
+    font-size: 1.3rem;
+    line-height: 1.4;
+  }
+
+  .article-content .prose :global(p) {
+    margin-bottom: 1.5rem;
+  }
+
+  .article-content .prose :global(a) {
+    color: var(--green);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    overflow-wrap: anywhere;
+  }
+
+  .article-content .prose :global(a:hover) {
+    color: var(--text);
+  }
+
+  .article-content .prose :global(ul),
+  .article-content .prose :global(ol) {
+    margin: 1.5rem 0;
+    padding-left: 1.5rem;
+  }
+
+  .article-content .prose :global(li) {
+    margin-bottom: 0.6rem;
+  }
+
+  .article-content .prose :global(blockquote) {
+    margin: 2rem 0;
+    padding: 1.25rem 1.5rem;
+    border-left: 2px solid var(--blue);
+    background: var(--bg-raised);
+    color: var(--text);
+  }
+
+  .article-content .prose :global(pre) {
+    max-width: 100%;
+    margin: 2rem 0;
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    background: var(--bg-inset);
+    overflow-x: auto;
+  }
+
+  .article-content .prose :global(code) {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+  }
+
+  .article-content .prose :global(:not(pre) > code) {
+    padding: 0.15rem 0.35rem;
+    background: var(--bg-panel);
+    color: var(--green);
+    overflow-wrap: anywhere;
+  }
+
+  .article-content .prose :global(table) {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin: 2rem 0;
+    border-collapse: collapse;
+    overflow-x: auto;
+  }
+
+  .article-content .prose :global(th),
+  .article-content .prose :global(td) {
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .article-content .prose :global(th) {
+    background: var(--bg-panel);
+    color: var(--text);
+  }
+
+  .article-content .prose :global(img) {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--border);
+  }
+
+  .article-content .prose :global(hr) {
+    margin: 3rem 0;
+    border: 0;
+    border-top: 1px solid var(--border);
+  }
+
+  /*
+   * Supports common KaTeX output if mathematical
+   * rendering is enabled in the Markdown pipeline.
+   */
+  .article-content .prose :global(.katex-display) {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.5rem 0;
+  }
+
+  .limitations-list {
+    margin: 0;
+    padding: 1.5rem 1.5rem 1.5rem 2.5rem;
+    border-left: 2px solid var(--blue);
+    background: var(--bg-raised);
+    color: var(--text-muted);
+  }
+
+  .limitations-list li {
+    margin-bottom: 0.6rem;
+    line-height: 1.7;
+  }
+
+  .record-empty {
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    background: var(--bg-raised);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .references-list {
+    padding-left: 1.5rem;
+    color: var(--text-dim);
+  }
+
+  .references-list li {
+    margin-bottom: 1rem;
+    padding-left: 0.5rem;
+  }
+
+  .references-list a {
+    color: var(--green);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .references-list a:hover {
+    color: var(--text);
+  }
+
+  .references-list a span {
+    margin-left: 0.4rem;
+  }
+
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    border: 1px solid var(--border);
+    background: var(--border);
+  }
+
+  .related-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 0;
+    padding: 1.5rem;
+    background: var(--bg-raised);
+    color: var(--text);
+    text-decoration: none;
+    transition: background var(--transition-fast);
+  }
+
+  .related-card:hover {
+    background: var(--bg-panel);
+  }
+
+  .related-card span,
+  .related-card small {
+    color: var(--blue);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+  }
+
+  .related-card strong {
+    font-size: 1rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .article-footer {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+  }
+
+  .article-footer a {
+    color: var(--green);
+    text-decoration: none;
+  }
+
+  .article-footer a:hover {
+    color: var(--text);
+  }
+
+  .back-link:focus-visible,
+  .chapter-link:focus-visible,
+  .references-list a:focus-visible,
+  .related-card:focus-visible,
+  .article-footer a:focus-visible {
+    outline: 2px solid var(--green);
+    outline-offset: 4px;
+  }
+
+  @media (max-width: 1000px) {
+    .hero-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .record-panel {
+      max-width: 600px;
+    }
+
+    .article-layout {
+      grid-template-columns: 210px minmax(0, 1fr);
+      gap: 2rem;
+    }
+  }
+
+  @media (max-width: 800px) {
+    .article-layout {
+      display: block;
+    }
+
+    .chapter-sidebar {
+      display: none;
+    }
+
+    .mobile-index {
+      display: block;
+      margin-bottom: 3rem;
+      padding: 1rem;
+      border: 1px solid var(--border);
+      background: var(--bg-raised);
+    }
+
+    .mobile-index label {
+      display: block;
+      margin-bottom: 0.75rem;
+      color: var(--blue);
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.05em;
+    }
+
+    .mobile-index select {
+      display: block;
+      width: 100%;
+      padding: 0.85rem;
+      border: 1px solid var(--border-strong);
+      border-radius: 0;
+      background: var(--bg-inset);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .mobile-index select:focus-visible {
+      outline: 2px solid var(--green);
+      outline-offset: 3px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .hero-topline {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .hero-main h1 {
+      font-size: clamp(2.2rem, 10vw, 3.5rem);
+    }
+
+    .context-grid,
+    .related-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .metadata-list > div {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .metadata-list dd {
+      text-align: left;
+    }
+
+    .section-topline {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .article-content .prose :global(pre) {
+      padding: 1rem;
+    }
+
+    .article-content .prose :global(th),
+    .article-content .prose :global(td) {
+      padding: 0.65rem 0.75rem;
+      font-size: 0.85rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .chapter-link,
+    .related-card {
+      transition: none;
+    }
+  }
+</style>

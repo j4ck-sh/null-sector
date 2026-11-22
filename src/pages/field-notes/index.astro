@@ -1,0 +1,1974 @@
+
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+const noteTypes = [
+  {
+    id: "observations",
+    number: "01",
+    symbol: "OBS",
+    title: "Observations",
+    label: "INVESTIGATIVE NOTES",
+    description:
+      "Short records of technical observations, with the source, context and limits of what was actually observed.",
+  },
+  {
+    id: "lab-notes",
+    number: "02",
+    symbol: "LAB",
+    title: "Lab Notes",
+    label: "CONTROLLED ENVIRONMENTS",
+    description:
+      "Documented exercises and experiments, distinguishing completed lab activity from proposed procedures.",
+  },
+  {
+    id: "tool-notes",
+    number: "03",
+    symbol: "TOOL",
+    title: "Tool Notes",
+    label: "TECHNICAL WORKFLOWS",
+    description:
+      "Configuration details, command references and workflow explanations, with execution claims made only when supported.",
+  },
+  {
+    id: "troubleshooting",
+    number: "04",
+    symbol: "DBG",
+    title: "Troubleshooting",
+    label: "PROBLEM SOLVING",
+    description:
+      "Errors, diagnostic approaches and resolutions, including unsuccessful attempts and unresolved questions.",
+  },
+  {
+    id: "concepts",
+    number: "05",
+    symbol: "CON",
+    title: "Concepts",
+    label: "TECHNICAL EXPLANATIONS",
+    description:
+      "Focused explanations of security, operating-system, networking and forensic concepts.",
+  },
+  {
+    id: "reference-notes",
+    number: "06",
+    symbol: "REF",
+    title: "Reference Notes",
+    label: "SOURCE-BASED STUDY",
+    description:
+      "Concise summaries of technical documentation and external material, with attribution and source limitations.",
+  },
+] as const;
+
+const publishedNotes = (
+  await getCollection("fieldNotes", ({ data }) => !data.draft)
+).sort(
+  (a, b) =>
+    b.data.publishedAt.getTime() -
+      a.data.publishedAt.getTime() ||
+    a.id.localeCompare(b.id)
+);
+
+const publishedCount = publishedNotes.length;
+
+const categoryCounts: Record<string, number> =
+  Object.fromEntries(
+    noteTypes.map((type) => [
+      type.id,
+      publishedNotes.filter(
+        (note) => note.data.category === type.id
+      ).length,
+    ])
+  );
+
+const categoryNames: Record<string, string> =
+  Object.fromEntries(
+    noteTypes.map((type) => [type.id, type.title])
+  );
+
+const activeCategoryCount = noteTypes.filter(
+  (type) => categoryCounts[type.id] > 0
+).length;
+
+const labCount = categoryCounts["lab-notes"] ?? 0;
+
+const availableFilters = noteTypes.filter(
+  (type) => categoryCounts[type.id] > 0
+);
+
+const activityNames: Record<string, string> = {
+  "source-review": "SOURCE REVIEW",
+  "guided-exercise": "GUIDED EXERCISE",
+  "independent-lab": "INDEPENDENT LAB",
+  "controlled-experiment": "CONTROLLED EXPERIMENT",
+  "technical-explanation": "TECHNICAL EXPLANATION",
+  troubleshooting: "TROUBLESHOOTING",
+  observation: "OBSERVATION",
+};
+
+const evidenceNames: Record<string, string> = {
+  "public-source": "PUBLIC SOURCE",
+  guided: "GUIDED",
+  "controlled-lab": "CONTROLLED LAB",
+  simulated: "SIMULATED",
+  theoretical: "THEORETICAL",
+  "direct-observation": "DIRECT OBSERVATION",
+  mixed: "MIXED",
+};
+
+const statusNames: Record<string, string> = {
+  planned: "PLANNED",
+  "in-progress": "IN PROGRESS",
+  completed: "COMPLETED",
+};
+
+const dateFormatter = new Intl.DateTimeFormat("en-GB", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
+const formatCount = (count: number) =>
+  String(count).padStart(2, "0");
+---
+
+<BaseLayout
+  title="Field Notes | NULL SECTOR"
+  description="Source-based cybersecurity and digital-forensics notes covering observations, labs, tools, troubleshooting, concepts and technical references."
+>
+  <main id="main-content" class="field-notes-page">
+    <!-- HERO -->
+    <section
+      class="notes-hero"
+      aria-labelledby="notes-title"
+    >
+      <div class="container">
+        <div class="hero-topline">
+          <span class="eyebrow">
+            [ 03 / FIELD NOTES ]
+          </span>
+
+          <span class="system-label">
+            NULL SECTOR / FIELD_NOTES.INDEX
+          </span>
+        </div>
+
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <p class="hero-command">
+              <span class="prompt">root@nullsector</span>:~$
+              ./notes --list
+            </p>
+
+            <h1 id="notes-title">
+              Field<span class="accent-blue">.</span>
+              <span class="title-second">
+                Notes<span class="accent-green">_</span>
+              </span>
+            </h1>
+
+            <p class="hero-lead">
+              Small records.
+              <span>Clear evidence.</span>
+            </p>
+
+            <p class="hero-description">
+              A working notebook for cybersecurity,
+              digital forensics and technical investigation.
+              Short entries capture ideas, procedures,
+              observations and lessons without presenting
+              study notes as completed research.
+            </p>
+          </div>
+
+          <aside
+            class="hero-panel"
+            aria-label="Field Notes documentation principles"
+          >
+            <div class="panel-header">
+              <span>NOTES.PROTOCOL</span>
+              <span class="panel-symbol" aria-hidden="true">
+                [+]
+              </span>
+            </div>
+
+            <div class="protocol-row">
+              <span>01</span>
+              <div>
+                <strong>CONTEXT</strong>
+                <p>Explain why the note exists.</p>
+              </div>
+            </div>
+
+            <div class="protocol-row">
+              <span>02</span>
+              <div>
+                <strong>PROVENANCE</strong>
+                <p>Identify sources and environments.</p>
+              </div>
+            </div>
+
+            <div class="protocol-row">
+              <span>03</span>
+              <div>
+                <strong>PRECISION</strong>
+                <p>
+                  Separate instructions from actions
+                  actually performed.
+                </p>
+              </div>
+            </div>
+
+            <div class="protocol-row">
+              <span>04</span>
+              <div>
+                <strong>LIMITS</strong>
+                <p>
+                  Record uncertainty and unresolved
+                  questions.
+                </p>
+              </div>
+            </div>
+
+            <div class="panel-footer">
+              <span>CAPTURE / VERIFY / DOCUMENT</span>
+              <span
+                class="status-light"
+                aria-hidden="true"
+              ></span>
+            </div>
+          </aside>
+        </div>
+
+        <div
+          class="hero-stats"
+          aria-label="Field Notes archive statistics"
+        >
+          <div class="stat">
+            <span class="stat-value">
+              {formatCount(publishedCount)}
+            </span>
+            <span class="stat-label">
+              PUBLISHED NOTES
+            </span>
+          </div>
+
+          <div class="stat">
+            <span class="stat-value">
+              {formatCount(noteTypes.length)}
+            </span>
+            <span class="stat-label">
+              NOTE CATEGORIES
+            </span>
+          </div>
+
+          <div class="stat">
+            <span class="stat-value">
+              {formatCount(labCount)}
+            </span>
+            <span class="stat-label">
+              PUBLIC LAB NOTES
+            </span>
+          </div>
+
+          <div class="stat">
+            <span class="stat-value stat-text">
+              {formatCount(activeCategoryCount)}/
+              {formatCount(noteTypes.length)}
+            </span>
+            <span class="stat-label">
+              CATEGORIES WITH ENTRIES
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NOTE CATEGORIES -->
+    <section
+      class="section categories-section"
+      aria-labelledby="categories-title"
+    >
+      <div class="container">
+        <div class="section-topline">
+          <span class="eyebrow">
+            [ NOTE CLASSIFICATION ]
+          </span>
+
+          <span class="section-code">
+            TYPES / 01—06
+          </span>
+        </div>
+
+        <div class="section-heading">
+          <h2 id="categories-title">
+            Notes by
+            <span class="accent-blue">type.</span>
+          </h2>
+
+          <p>
+            A consistent structure helps distinguish
+            practical activity, documentation, technical
+            explanation and research preparation.
+            Categories describe the archive structure,
+            not claims of completed work.
+          </p>
+        </div>
+
+        <div class="categories-grid">
+          {
+            noteTypes.map((type) => {
+              const count = categoryCounts[type.id] ?? 0;
+
+              return (
+                <article class="category-card">
+                  <div class="category-top">
+                    <span>{type.number}</span>
+                    <span class="category-symbol">
+                      {type.symbol}
+                    </span>
+                  </div>
+
+                  <div class="category-body">
+                    <span class="category-label">
+                      {type.label}
+                    </span>
+
+                    <h3>{type.title}</h3>
+
+                    <p>{type.description}</p>
+                  </div>
+
+                  <div class="category-bottom">
+                    <span>FIELD NOTE TYPE</span>
+                    <span class="category-count">
+                      {formatCount(count)} PUBLISHED
+                    </span>
+                  </div>
+
+                  {count > 0 ? (
+                    <a
+                      class="category-action"
+                      href="#archive-title"
+                      data-category-link={type.id}
+                      aria-label={`View published ${type.title} notes`}
+                    >
+                      VIEW NOTES
+                      <span aria-hidden="true">↗</span>
+                    </a>
+                  ) : (
+                    <span class="category-unavailable">
+                      NO PUBLISHED ENTRIES
+                      <span aria-hidden="true">—</span>
+                    </span>
+                  )}
+                </article>
+              );
+            })
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- ARCHIVE -->
+    <section
+      class="section archive-section"
+      aria-labelledby="archive-title"
+    >
+      <div class="container">
+        <div class="section-topline">
+          <span class="eyebrow eyebrow-blue">
+            [ PUBLIC FIELD NOTES ]
+          </span>
+
+          <span class="section-code">
+            INDEX / PUBLISHED ONLY
+          </span>
+        </div>
+
+        <div class="section-heading archive-heading">
+          <h2 id="archive-title">
+            Notebook<span class="accent-green">.</span>
+          </h2>
+
+          <p>
+            Published entries are listed with their
+            category, activity type, evidence basis,
+            publication date and a concise description.
+          </p>
+        </div>
+
+        {
+          publishedCount > 0 ? (
+            <>
+              <div class="archive-controls">
+                <div
+                  class="filter-buttons"
+                  role="group"
+                  aria-label="Filter published field notes by category"
+                >
+                  <button
+                    class="filter-button is-active"
+                    type="button"
+                    data-filter="all"
+                    aria-pressed="true"
+                  >
+                    ALL
+                    <span>{formatCount(publishedCount)}</span>
+                  </button>
+
+                  {availableFilters.map((type) => (
+                    <button
+                      class="filter-button"
+                      type="button"
+                      data-filter={type.id}
+                      aria-pressed="false"
+                      aria-label={`Show ${type.title} notes`}
+                    >
+                      {type.symbol}
+                      <span>
+                        {formatCount(
+                          categoryCounts[type.id]
+                        )}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                <div class="archive-sort">
+                  <span>ORDER</span>
+                  <strong>NEWEST FIRST</strong>
+                </div>
+              </div>
+
+              <div class="archive-count-line">
+                <span
+                  id="visible-note-count"
+                  role="status"
+                  aria-live="polite"
+                  aria-atomic="true"
+                >
+                  SHOWING {formatCount(publishedCount)}
+                  {" "}OF {formatCount(publishedCount)} NOTES
+                </span>
+
+                <span>PUBLIC RECORDS ONLY</span>
+              </div>
+
+              <div
+                class="notes-list"
+                id="notes-list"
+              >
+                {publishedNotes.map((note, index) => (
+                  <article
+                    class="note-card"
+                    data-note-category={note.data.category}
+                  >
+                    <div
+                      class="note-index"
+                      aria-hidden="true"
+                    >
+                      <span>
+                        {formatCount(index + 1)}
+                      </span>
+
+                      <span class="note-index-mark">
+                        FN
+                      </span>
+                    </div>
+
+                    <div class="note-main">
+                      <div class="note-meta">
+                        <span class="note-category">
+                          {categoryNames[
+                            note.data.category
+                          ] ?? note.data.category}
+                        </span>
+
+                        <span
+                          class="meta-divider"
+                          aria-hidden="true"
+                        >
+                          /
+                        </span>
+
+                        <time
+                          datetime={note.data.publishedAt
+                            .toISOString()
+                            .slice(0, 10)}
+                        >
+                          {dateFormatter.format(
+                            note.data.publishedAt
+                          )}
+                        </time>
+                      </div>
+
+                      <h3>
+                        <a
+                          href={`/field-notes/${note.id}/`}
+                        >
+                          {note.data.title}
+
+                          <span
+                            class="note-arrow"
+                            aria-hidden="true"
+                          >
+                            ↗
+                          </span>
+                        </a>
+                      </h3>
+
+                      <p class="note-description">
+                        {note.data.description}
+                      </p>
+
+                      <div class="note-classifications">
+                        <span class="classification">
+                          <span class="classification-label">
+                            ACTIVITY
+                          </span>
+
+                          {activityNames[
+                            note.data.activityType
+                          ] ?? note.data.activityType}
+                        </span>
+
+                        <span class="classification">
+                          <span class="classification-label">
+                            EVIDENCE
+                          </span>
+
+                          {evidenceNames[
+                            note.data.evidenceType
+                          ] ?? note.data.evidenceType}
+                        </span>
+
+                        <span class="classification">
+                          <span class="classification-label">
+                            STATUS
+                          </span>
+
+                          {statusNames[
+                            note.data.status
+                          ] ?? note.data.status}
+                        </span>
+                      </div>
+
+                      {note.data.topics.length > 0 && (
+                        <div
+                          class="note-topics"
+                          aria-label="Note topics"
+                        >
+                          {note.data.topics
+                            .slice(0, 5)
+                            .map((topic) => (
+                              <span class="topic-tag">
+                                {topic}
+                              </span>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
+
+              <div
+                class="filtered-empty"
+                id="filtered-empty"
+                hidden
+              >
+                <span class="empty-label">
+                  FILTER RESULT / NO MATCHES
+                </span>
+
+                <h3>
+                  No notes in this category
+                  <span>.</span>
+                </h3>
+
+                <p>
+                  No published entries match the selected
+                  category. Return to all notes to view
+                  the complete archive.
+                </p>
+
+                <button
+                  class="reset-filter"
+                  id="reset-filter"
+                  type="button"
+                >
+                  SHOW ALL NOTES
+                </button>
+              </div>
+
+              <div class="archive-end">
+                <span>END OF PUBLISHED NOTES</span>
+                <span aria-hidden="true">[ EOF ]</span>
+              </div>
+            </>
+          ) : (
+            <div class="empty-archive">
+              <div
+                class="empty-symbol"
+                aria-hidden="true"
+              >
+                <span>FN</span>
+                <span class="symbol-corner"></span>
+              </div>
+
+              <div class="empty-content">
+                <span class="empty-label">
+                  ARCHIVE STATUS / AWAITING FIRST ENTRY
+                </span>
+
+                <h3>
+                  Notes in preparation<span>.</span>
+                </h3>
+
+                <p>
+                  The Field Notes archive structure is
+                  established. No public notes have been
+                  added yet.
+                </p>
+
+                <p>
+                  Entries will be published when their
+                  sources, context and activity claims
+                  are sufficiently documented.
+                </p>
+
+                <div class="empty-status">
+                  <span
+                    class="status-dot"
+                    aria-hidden="true"
+                  ></span>
+
+                  <span>
+                    NO PUBLISHED FIELD NOTES
+                  </span>
+                </div>
+              </div>
+            </div>
+          )
+        }
+      </div>
+    </section>
+
+    <!-- DOCUMENTATION STANDARD -->
+    <section
+      class="section standard-section"
+      aria-labelledby="standard-title"
+    >
+      <div class="container">
+        <div class="section-topline">
+          <span class="eyebrow">
+            [ DOCUMENTATION STANDARD ]
+          </span>
+
+          <span class="section-code">
+            NOTES.METHOD
+          </span>
+        </div>
+
+        <div class="standard-grid">
+          <div class="standard-intro">
+            <h2 id="standard-title">
+              Record the work
+              <span class="accent-blue">.</span>
+              <span>Not the assumption.</span>
+            </h2>
+
+            <p>
+              A useful technical note makes it possible
+              to understand what was studied, what was
+              actually performed and which conclusions
+              remain tentative.
+            </p>
+
+            <p>
+              A walkthrough, example command or proposed
+              lab procedure is not evidence that the
+              activity was independently completed.
+            </p>
+          </div>
+
+          <div class="standard-list">
+            <div class="standard-row">
+              <span class="row-number">01</span>
+              <div>
+                <h3>SUBJECT &amp; CONTEXT</h3>
+                <p>
+                  Define the technical topic and purpose.
+                </p>
+              </div>
+            </div>
+
+            <div class="standard-row">
+              <span class="row-number">02</span>
+              <div>
+                <h3>ACTIVITY &amp; SOURCE</h3>
+                <p>
+                  Identify the material used and actions
+                  actually performed.
+                </p>
+              </div>
+            </div>
+
+            <div class="standard-row">
+              <span class="row-number">03</span>
+              <div>
+                <h3>OBSERVATION &amp; INTERPRETATION</h3>
+                <p>
+                  Keep direct evidence separate from
+                  inference.
+                </p>
+              </div>
+            </div>
+
+            <div class="standard-row">
+              <span class="row-number">04</span>
+              <div>
+                <h3>LIMITATIONS &amp; FOLLOW-UP</h3>
+                <p>
+                  State uncertainties and possible next
+                  steps.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CLOSING -->
+    <section
+      class="notes-closing"
+      aria-labelledby="notes-closing-title"
+    >
+      <div class="container closing-grid">
+        <div>
+          <span class="eyebrow">
+            [ EXPLORE NULL SECTOR ]
+          </span>
+
+          <h2 id="notes-closing-title">
+            Go deeper<span class="accent-green">_</span>
+          </h2>
+
+          <p>
+            Explore longer-form research records or
+            review the learning archive behind the
+            technical work.
+          </p>
+        </div>
+
+        <div class="closing-actions">
+          <a class="button" href="/research/">
+            VIEW RESEARCH
+          </a>
+
+          <a
+            class="button button-secondary"
+            href="/learning/"
+          >
+            VIEW LEARNING
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script>
+  function initialiseNoteFilters() {
+    const list =
+      document.querySelector<HTMLElement>(
+        "#notes-list"
+      );
+
+    if (!list) return;
+
+    if (list.dataset.filtersReady === "true") {
+      return;
+    }
+
+    const buttons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>(
+        ".filter-button[data-filter]"
+      )
+    );
+
+    const cards = Array.from(
+      list.querySelectorAll<HTMLElement>(
+        ".note-card[data-note-category]"
+      )
+    );
+
+    const categoryLinks = Array.from(
+      document.querySelectorAll<HTMLAnchorElement>(
+        "[data-category-link]"
+      )
+    );
+
+    const countElement =
+      document.getElementById(
+        "visible-note-count"
+      );
+
+    const emptyElement =
+      document.getElementById(
+        "filtered-empty"
+      );
+
+    const resetButton =
+      document.getElementById(
+        "reset-filter"
+      );
+
+    if (!buttons.length) return;
+
+    list.dataset.filtersReady = "true";
+
+    function applyFilter(category: string) {
+      let visibleCount = 0;
+
+      for (const card of cards) {
+        const matches =
+          category === "all" ||
+          card.dataset.noteCategory === category;
+
+        card.hidden = !matches;
+
+        if (matches) {
+          visibleCount += 1;
+        }
+      }
+
+      for (const button of buttons) {
+        const active =
+          button.dataset.filter === category;
+
+        button.classList.toggle(
+          "is-active",
+          active
+        );
+
+        button.setAttribute(
+          "aria-pressed",
+          String(active)
+        );
+      }
+
+      if (countElement) {
+        const visible = String(
+          visibleCount
+        ).padStart(2, "0");
+
+        const total = String(
+          cards.length
+        ).padStart(2, "0");
+
+        countElement.textContent =
+          `SHOWING ${visible} OF ${total} NOTES`;
+      }
+
+      if (emptyElement) {
+        emptyElement.hidden =
+          visibleCount !== 0;
+      }
+
+      if (list) {
+  list.hidden = visibleCount === 0;
+}
+    }
+
+    for (const button of buttons) {
+      button.addEventListener(
+        "click",
+        () => {
+          applyFilter(
+            button.dataset.filter ?? "all"
+          );
+        }
+      );
+    }
+
+    for (const link of categoryLinks) {
+      link.addEventListener(
+        "click",
+        () => {
+          applyFilter(
+            link.dataset.categoryLink ?? "all"
+          );
+        }
+      );
+    }
+
+    resetButton?.addEventListener(
+      "click",
+      () => {
+        applyFilter("all");
+      }
+    );
+
+    applyFilter("all");
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      initialiseNoteFilters,
+      { once: true }
+    );
+  } else {
+    initialiseNoteFilters();
+  }
+
+  document.addEventListener(
+    "astro:page-load",
+    initialiseNoteFilters
+  );
+</script>
+
+<style>
+  .field-notes-page {
+    background: var(--bg);
+    color: var(--text);
+    overflow: clip;
+  }
+
+  .field-notes-page .accent-blue {
+    color: var(--blue);
+  }
+
+  .field-notes-page .accent-green {
+    color: var(--green);
+  }
+
+  .field-notes-page a:focus-visible,
+  .field-notes-page button:focus-visible {
+    outline: 2px solid var(--blue-bright);
+    outline-offset: 4px;
+  }
+
+  /* Hero */
+
+  .notes-hero {
+    padding: clamp(4rem, 8vw, 8rem) 0 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .hero-topline,
+  .section-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+  }
+
+  .hero-topline {
+    margin-bottom: clamp(3rem, 6vw, 6rem);
+  }
+
+  .system-label,
+  .section-code {
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1.2fr)
+      minmax(280px, 0.8fr);
+    align-items: end;
+    gap: clamp(2rem, 6vw, 7rem);
+    padding-bottom: clamp(4rem, 7vw, 7rem);
+  }
+
+  .hero-copy {
+    min-width: 0;
+  }
+
+  .hero-command {
+    margin: 0 0 1.5rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+
+  .prompt {
+    color: var(--green);
+  }
+
+  .hero-copy h1 {
+    margin: 0 0 2rem;
+    font-family: var(--font-mono);
+    font-size: clamp(3rem, 9vw, 8rem);
+    letter-spacing: -0.085em;
+    line-height: 1.05;
+    overflow-wrap: break-word;
+  }
+
+  .title-second {
+    display: block;
+  }
+
+  .hero-lead {
+    margin: 0 0 1.25rem;
+    font-size: clamp(1.3rem, 2.4vw, 2rem);
+    font-weight: 500;
+    letter-spacing: -0.04em;
+    line-height: 1.4;
+  }
+
+  .hero-lead span {
+    display: block;
+    color: var(--green);
+  }
+
+  .hero-description {
+    max-width: 590px;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.8;
+  }
+
+  /* Protocol panel */
+
+  .hero-panel {
+    min-width: 0;
+    border: 1px solid var(--border-strong);
+    background: var(--bg-inset);
+  }
+
+  .panel-header,
+  .panel-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    line-height: 1.6;
+  }
+
+  .panel-header {
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-panel);
+  }
+
+  .panel-symbol {
+    color: var(--green);
+  }
+
+  .panel-footer {
+    border-top: 1px solid var(--border);
+  }
+
+  .status-light {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 auto;
+    background: var(--green);
+  }
+
+  .protocol-row {
+    display: grid;
+    grid-template-columns:
+      30px minmax(0, 1fr);
+    gap: 1rem;
+    padding: 1.15rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .protocol-row:nth-last-child(2) {
+    border-bottom: 0;
+  }
+
+  .protocol-row > span {
+    color: var(--blue);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+  }
+
+  .protocol-row strong {
+    display: block;
+    margin-bottom: 0.35rem;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+  }
+
+  .protocol-row p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1.7;
+  }
+
+  /* Statistics */
+
+  .hero-stats {
+    display: grid;
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+    border-top: 1px solid var(--border);
+  }
+
+  .stat {
+    display: flex;
+    min-width: 0;
+    min-height: 120px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 1.75rem 1.5rem;
+    border-right: 1px solid var(--border);
+  }
+
+  .stat:first-child {
+    padding-left: 0;
+  }
+
+  .stat:last-child {
+    border-right: 0;
+  }
+
+  .stat-value {
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.06em;
+    line-height: 1;
+  }
+
+  .stat-text {
+    color: var(--green);
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+  }
+
+  .stat-label {
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+  }
+
+  /* Shared section headings */
+
+  .field-notes-page .section {
+    padding: clamp(4.5rem, 8vw, 7rem) 0;
+  }
+
+  .section-topline {
+    margin-bottom: 2rem;
+  }
+
+  .eyebrow-blue {
+    color: var(--blue);
+  }
+
+  .section-heading {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 0.7fr);
+    align-items: end;
+    gap: 3rem;
+    margin-bottom: 3rem;
+  }
+
+  .section-heading h2 {
+    min-width: 0;
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 4.5rem);
+    letter-spacing: -0.06em;
+    line-height: 1.15;
+    overflow-wrap: break-word;
+  }
+
+  .section-heading p {
+    max-width: 500px;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.8;
+  }
+
+  /* Category cards */
+
+  .categories-section {
+    background: var(--bg-raised);
+  }
+
+  .categories-grid {
+    display: grid;
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    border: 1px solid var(--border);
+    background: var(--border);
+  }
+
+  .category-card {
+    display: flex;
+    min-width: 0;
+    min-height: 310px;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: var(--bg-raised);
+    transition:
+      background var(--transition-normal),
+      box-shadow var(--transition-normal);
+  }
+
+  .category-card:hover,
+  .category-card:focus-within {
+    background: var(--bg-panel);
+    box-shadow: inset 0 3px 0 var(--blue);
+  }
+
+  .category-top,
+  .category-bottom,
+  .category-action,
+  .category-unavailable {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+  }
+
+  .category-top,
+  .category-bottom {
+    color: var(--text-dim);
+  }
+
+  .category-symbol,
+  .category-label,
+  .category-count {
+    color: var(--blue);
+  }
+
+  .category-body {
+    flex: 1;
+  }
+
+  .category-label {
+    display: block;
+    margin-bottom: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    line-height: 1.6;
+  }
+
+  .category-body h3 {
+    margin: 0 0 0.85rem;
+    font-size: 1.3rem;
+    letter-spacing: -0.04em;
+    line-height: 1.3;
+  }
+
+  .category-body p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    line-height: 1.7;
+  }
+
+  .category-bottom {
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .category-action {
+    min-height: 44px;
+    color: var(--green);
+    text-decoration: none;
+  }
+
+  .category-action:hover {
+    color: var(--text);
+  }
+
+  .category-unavailable {
+    min-height: 44px;
+    color: var(--text-dim);
+  }
+
+  /* Archive controls */
+
+  .archive-section {
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .archive-heading {
+    margin-bottom: 3.5rem;
+  }
+
+  .archive-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .filter-button {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 0;
+    background: var(--bg-raised);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+    cursor: pointer;
+    transition:
+      border-color var(--transition-fast),
+      color var(--transition-fast),
+      background var(--transition-fast);
+  }
+
+  .filter-button span {
+    color: var(--text-dim);
+  }
+
+  .filter-button:hover {
+    border-color: var(--blue);
+    color: var(--text);
+  }
+
+  .filter-button.is-active {
+    border-color: var(--green);
+    background: var(--green);
+    color: var(--bg);
+  }
+
+  .filter-button.is-active span {
+    color: var(--bg);
+  }
+
+  .archive-sort {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    line-height: 1.6;
+  }
+
+  .archive-sort span {
+    color: var(--text-dim);
+  }
+
+  .archive-sort strong {
+    color: var(--blue);
+    font-weight: 500;
+  }
+
+  .archive-count-line {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    padding: 1rem 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+  }
+
+  /* Note records */
+
+  .notes-list {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .note-card {
+    display: grid;
+    grid-template-columns:
+      70px minmax(0, 1fr);
+    gap: clamp(1rem, 3vw, 3rem);
+    padding: clamp(2rem, 4vw, 3.5rem) 0;
+    border-bottom: 1px solid var(--border);
+    transition: background var(--transition-normal);
+  }
+
+  .note-card:last-child {
+    border-bottom: 0;
+  }
+
+  .note-card:hover {
+    background: var(--bg-raised);
+  }
+
+  .note-index {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    color: var(--blue);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  .note-index-mark {
+    color: var(--text-dim);
+    font-size: 0.65rem;
+  }
+
+  .note-main {
+    min-width: 0;
+  }
+
+  .note-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+  }
+
+  .note-category {
+    color: var(--blue);
+  }
+
+  .meta-divider {
+    color: var(--border-strong);
+  }
+
+  .note-main h3 {
+    margin: 0 0 1rem;
+    font-size: clamp(1.5rem, 2.7vw, 2.4rem);
+    letter-spacing: -0.05em;
+    line-height: 1.25;
+    overflow-wrap: break-word;
+  }
+
+  .note-main h3 a {
+    display: inline-flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .note-main h3 a:hover {
+    color: var(--green);
+  }
+
+  .note-arrow {
+    color: var(--green);
+    font-family: var(--font-mono);
+    font-size: 1rem;
+  }
+
+  .note-description {
+    max-width: 780px;
+    margin: 0 0 1.5rem;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.8;
+  }
+
+  .note-classifications {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .classification {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.03em;
+    line-height: 1.6;
+  }
+
+  .classification-label {
+    color: var(--blue);
+  }
+
+  .note-topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .topic-tag {
+    padding: 0.35rem 0.55rem;
+    background: var(--bg-raised);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    line-height: 1.5;
+  }
+
+  .archive-end {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-top: 1.25rem;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+  }
+
+  /* Empty states */
+
+  .empty-archive {
+    display: grid;
+    grid-template-columns:
+      160px minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(2rem, 5vw, 5rem);
+    padding: clamp(3rem, 7vw, 6rem);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-raised);
+  }
+
+  .empty-symbol {
+    position: relative;
+    display: flex;
+    width: 140px;
+    height: 140px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-strong);
+    color: var(--green);
+    font-family: var(--font-mono);
+    font-size: 2.8rem;
+    font-weight: 700;
+    letter-spacing: -0.1em;
+  }
+
+  .symbol-corner {
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    width: 22px;
+    height: 22px;
+    border-top: 3px solid var(--blue);
+    border-left: 3px solid var(--blue);
+  }
+
+  .empty-label {
+    display: block;
+    margin-bottom: 1rem;
+    color: var(--blue);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.07em;
+    line-height: 1.6;
+  }
+
+  .empty-content h3,
+  .filtered-empty h3 {
+    margin: 0 0 1.25rem;
+    font-size: clamp(1.7rem, 3vw, 2.7rem);
+    letter-spacing: -0.05em;
+    line-height: 1.2;
+  }
+
+  .empty-content h3 span,
+  .filtered-empty h3 span {
+    color: var(--green);
+  }
+
+  .empty-content p,
+  .filtered-empty p {
+    max-width: 600px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.8;
+  }
+
+  .empty-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-top: 1rem;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    line-height: 1.6;
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 auto;
+    background: var(--blue);
+  }
+
+  .filtered-empty {
+    padding: clamp(3rem, 6vw, 5rem);
+    border: 1px solid var(--border);
+    background: var(--bg-raised);
+  }
+
+  .reset-filter {
+    min-height: 44px;
+    margin-top: 1rem;
+    padding: 0.85rem 1.25rem;
+    border: 1px solid var(--green);
+    border-radius: 0;
+    background: transparent;
+    color: var(--green);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    cursor: pointer;
+  }
+
+  .reset-filter:hover {
+    background: var(--bg-panel);
+  }
+
+  .field-notes-page [hidden] {
+    display: none !important;
+  }
+
+  /* Documentation standard */
+
+  .standard-section {
+    border-top: 1px solid var(--border);
+    background: var(--bg-raised);
+  }
+
+  .standard-grid {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 0.9fr)
+      minmax(0, 1.1fr);
+    align-items: start;
+    gap: clamp(3rem, 7vw, 8rem);
+  }
+
+  .standard-intro {
+    min-width: 0;
+  }
+
+  .standard-intro h2 {
+    margin: 0 0 1.75rem;
+    font-size: clamp(2rem, 5vw, 4.5rem);
+    letter-spacing: -0.06em;
+    line-height: 1.15;
+    overflow-wrap: break-word;
+  }
+
+  .standard-intro h2 span:last-child {
+    display: block;
+  }
+
+  .standard-intro p {
+    max-width: 520px;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.8;
+  }
+
+  .standard-list {
+    border-top: 1px solid var(--border-strong);
+  }
+
+  .standard-row {
+    display: grid;
+    grid-template-columns:
+      45px minmax(0, 1fr);
+    gap: 1rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .row-number {
+    color: var(--blue);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  .standard-row h3 {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    line-height: 1.5;
+  }
+
+  .standard-row p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    line-height: 1.8;
+  }
+
+  /* Closing */
+
+  .notes-closing {
+    padding: clamp(4rem, 7vw, 7rem) 0;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .closing-grid {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+
+  .closing-grid h2 {
+    margin: 1.5rem 0;
+    font-family: var(--font-mono);
+    font-size: clamp(2rem, 5vw, 4.5rem);
+    letter-spacing: -0.06em;
+    line-height: 1.15;
+  }
+
+  .closing-grid p {
+    max-width: 510px;
+    margin: 0;
+    color: var(--text-muted);
+    line-height: 1.8;
+  }
+
+  .closing-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  /* Medium screens */
+
+  @media (max-width: 1100px) {
+    .categories-grid {
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* Tablet */
+
+  @media (max-width: 850px) {
+    .hero-grid,
+    .section-heading,
+    .standard-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .hero-grid {
+      align-items: start;
+    }
+
+    .hero-panel {
+      width: min(100%, 600px);
+    }
+
+    .section-heading {
+      gap: 1.25rem;
+    }
+
+    .hero-stats {
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    }
+
+    .stat:nth-child(2) {
+      border-right: 0;
+    }
+
+    .stat:nth-child(-n + 2) {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat:nth-child(3) {
+      padding-left: 0;
+    }
+
+    .closing-grid {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+
+  /* Mobile */
+
+  @media (max-width: 600px) {
+    .notes-hero {
+      padding-top: 3rem;
+    }
+
+    .hero-topline {
+      align-items: flex-start;
+      flex-direction: column;
+      margin-bottom: 3rem;
+    }
+
+    .hero-copy h1 {
+      font-size: clamp(3rem, 12vw, 5rem);
+    }
+
+    .field-notes-page .section {
+      padding-block: 4rem;
+    }
+
+    .stat {
+      min-height: 110px;
+      padding: 1.25rem 0.75rem;
+    }
+
+    .stat:nth-child(odd) {
+      padding-left: 0;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+    }
+
+    .stat-text {
+      font-size: 1.4rem;
+    }
+
+    .stat-label {
+      font-size: 0.6rem;
+    }
+
+    .categories-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .category-card {
+      min-height: 260px;
+    }
+
+    .archive-controls {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .filter-buttons {
+      width: 100%;
+    }
+
+    .note-card {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1rem;
+    }
+
+    .note-index {
+      align-items: center;
+      flex-direction: row;
+    }
+
+    .archive-count-line {
+      flex-direction: column;
+    }
+
+    .empty-archive {
+      grid-template-columns: minmax(0, 1fr);
+      padding: 2rem;
+    }
+
+    .empty-symbol {
+      width: 100px;
+      height: 100px;
+      font-size: 2rem;
+    }
+
+    .closing-actions {
+      width: 100%;
+    }
+
+    .closing-actions a {
+      width: 100%;
+      justify-content: center;
+      text-align: center;
+    }
+  }
+
+  /* Narrow mobile */
+
+  @media (max-width: 380px) {
+    .hero-copy h1 {
+      font-size: 12vw;
+    }
+
+    .filter-button {
+      padding-inline: 0.7rem;
+      font-size: 0.65rem;
+    }
+
+    .classification {
+      font-size: 0.6rem;
+    }
+  }
+
+  /* Reduced motion */
+
+  @media (prefers-reduced-motion: reduce) {
+    .field-notes-page *,
+    .field-notes-page *::before,
+    .field-notes-page *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+</style>

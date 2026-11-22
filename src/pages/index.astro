@@ -1,16 +1,3815 @@
+
 ---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const basePath = import.meta.env.BASE_URL;
+
+function withBase(path: string): string {
+  const base = basePath.endsWith("/")
+    ? basePath
+    : `${basePath}/`;
+
+  return `${base}${path.replace(/^\/+/, "")}`;
+}
+
+
+const learningHighlights = [
+  {
+    index: "01",
+    title: "Security Analyst Level 1",
+    provider: "TRYHACKME",
+    type: "TRAINING PATH",
+    status: "TRAINING COMPLETED",
+    description:
+      "Completed the SAL1 training material covering security operations and investigation workflows. Preparing for the certification examination; certification has not been earned.",
+    href: withBase("/learning/tryhackme-sal1/"),
+  },
+  {
+    index: "02",
+    title: "MalDev Academy",
+    provider: "MALDEV ACADEMY",
+    type: "COURSE COMPLETION",
+    status: "COMPLETED",
+    description:
+      "Completed all main modules of the malware-development course and received its course completion certificate.",
+    href: withBase("/learning/maldev-academy/"),
+  },
+  {
+    index: "03",
+    title: "Satellite Cybersecurity Foundations",
+    provider: "UDEMY / ANGELINA TSUBOI",
+    type: "COURSE COMPLETION",
+    status: "COMPLETED",
+    description:
+      "Completed the course covering satellite systems and security fundamentals, including an instructor-guided Hack the Orbit walkthrough.",
+    href: withBase("/learning/satellite-cybersecurity/"),
+  },
+];
+
+const researchAreas = [
+  {
+    number: "01",
+    title: "Satellite Security",
+    category: "SPACE SYSTEMS",
+    symbol: "SAT",
+    description:
+      "Spacecraft architecture, orbital information, ground infrastructure, and communications security.",
+    x: 50,
+    y: 16,
+    related: "PUBLISHED RESEARCH",
+    href: withBase("/research/satellite-osint-methodology/"),
+  },
+  {
+    number: "02",
+    title: "Drone Forensics",
+    category: "UNCREWED SYSTEMS",
+    symbol: "UAV",
+    description:
+      "Flight records, controllers, navigation artifacts, firmware, and digital evidence.",
+    x: 77,
+    y: 29,
+    related: "AREA OF INTEREST",
+    href: "",
+  },
+  {
+    number: "03",
+    title: "Mobile Forensics",
+    category: "MOBILE SYSTEMS",
+    symbol: "MOB",
+    description:
+      "Mobile-device artifacts, application data, timelines, and investigative methods.",
+    x: 84,
+    y: 65,
+    related: "AREA OF INTEREST",
+    href: "",
+  },
+  {
+    number: "04",
+    title: "IoT Forensics",
+    category: "EMBEDDED SYSTEMS",
+    symbol: "IOT",
+    description:
+      "Connected devices, firmware, network activity, and embedded-system evidence.",
+    x: 58,
+    y: 83,
+    related: "AREA OF INTEREST",
+    href: "",
+  },
+  {
+    number: "05",
+    title: "Vehicle Security",
+    category: "AUTOMOTIVE",
+    symbol: "CAN",
+    description:
+      "Automotive networks, embedded controllers, and vehicle-related forensic questions.",
+    x: 28,
+    y: 78,
+    related: "AREA OF INTEREST",
+    href: "",
+  },
+  {
+    number: "06",
+    title: "Ethical Hacking",
+    category: "OFFENSIVE SECURITY",
+    symbol: "SEC",
+    description:
+      "Authorised security testing, vulnerability concepts, and defensive understanding.",
+    x: 16,
+    y: 46,
+    related: "AREA OF INTEREST",
+    href: "",
+  },
+  {
+    number: "07",
+    title: "Malware Analysis",
+    category: "REVERSE ENGINEERING",
+    symbol: "HEX",
+    description:
+      "Malicious-code behaviour, operating-system internals, and forensic artifacts.",
+    x: 28,
+    y: 20,
+    related: "RELATED LEARNING",
+    href: withBase("/learning/maldev-academy/"),
+  },
+  {
+    number: "08",
+    title: "Incident Response",
+    category: "DEFENSIVE SECURITY",
+    symbol: "IR",
+    description:
+      "Alert triage, log correlation, network evidence, and incident investigation.",
+    x: 49,
+    y: 49,
+    related: "RELATED LEARNING",
+    href: withBase("/learning/tryhackme-sal1/"),
+  },
+];
+
+const orbitalModes = [
+  {
+    id: "period",
+    label: "01 / PERIOD",
+    title: "Approximate orbital period",
+    value: "92.93 MIN",
+    description:
+      "A historical published mean-motion value of 15.49535659 revolutions per day gives an approximate orbital period of 92.93 minutes.",
+  },
+  {
+    id: "source",
+    label: "02 / PROVENANCE",
+    title: "Public-source provenance",
+    value: "HISTORICAL DATA",
+    description:
+      "The cited orbital information originated with CelesTrak and was reproduced in a ByteTools technical reference. This portfolio did not independently capture the dataset.",
+  },
+  {
+    id: "limits",
+    label: "03 / LIMITS",
+    title: "What this display represents",
+    value: "ILLUSTRATIVE",
+    description:
+      "This is a stylized educational diagram, not a real-time ISS position, SGP4 propagation result, orbital reconstruction, or satellite-security test.",
+  },
+];
+
+const scannerSignals = [
+  {
+    id: "learning", label: "LEARNING", code: "LRN", x: 22, y: 25,
+    title: "Learning archive",
+    description: "Three documented training and course-completion records, with credentials and limitations stated clearly.",
+    href: withBase("/learning/"), action: "OPEN LEARNING",
+  },
+  {
+    id: "research", label: "RESEARCH", code: "RSH", x: 78, y: 24,
+    title: "Research archive",
+    description: "Public-source satellite OSINT research, including historical orbital-data provenance and evidence boundaries.",
+    href: withBase("/research/"), action: "OPEN RESEARCH",
+  },
+  {
+    id: "notes", label: "FIELD NOTES", code: "NOT", x: 23, y: 77,
+    title: "Field Notes",
+    description: "Focused technical references, beginning with TLE structure, mean motion, epochs, and SGP4 concepts.",
+    href: withBase("/field-notes/"), action: "OPEN FIELD NOTES",
+  },
+  {
+    id: "about", label: "ABOUT", code: "NS", x: 78, y: 77,
+    title: "About NULL SECTOR",
+    description: "The purpose of this independent archive, its areas of interest, and its approach to documenting evidence.",
+    href: withBase("/about/"), action: "READ ABOUT",
+  },
+];
+
+const navigationItems = [
+  { label: "Home", group: "PAGE", href: withBase("/"), keywords: "home start" },
+  {
+    label: "Learning archive",
+    group: "PAGE",
+    href: withBase("/learning/"),
+    keywords: "courses training",
+  },
+  {
+    label: "Research archive",
+    group: "PAGE",
+    href: withBase("/research/"),
+    keywords: "investigations osint",
+  },
+  {
+    label: "Field Notes",
+    group: "PAGE",
+    href: withBase("/field-notes/"),
+    keywords: "notes reference",
+  },
+  {
+    label: "About NULL SECTOR",
+    group: "PAGE",
+    href: withBase("/about/"),
+    keywords: "about profile",
+  },
+  ...learningHighlights.map((item) => ({
+    label: item.title,
+    group: "LEARNING",
+    href: item.href,
+    keywords: `${item.provider} ${item.type}`,
+  })),
+  {
+    label: "Satellite OSINT: Public Orbital Data",
+    group: "RESEARCH",
+    href: withBase("/research/satellite-osint-methodology/"),
+    keywords: "iss satellite orbital celestrak",
+  },
+  {
+    label: "Satellite Orbital Data: Reading the Basics",
+    group: "FIELD NOTE",
+    href: withBase("/field-notes/satellite-orbital-data-basics/"),
+    keywords: "tle sgp4 epoch mean motion",
+  },
+];
+
+
+
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout
+  title="NULL SECTOR | Cybersecurity & Digital Forensics"
+  description="NULL SECTOR is an independent cybersecurity and digital-forensics portfolio documenting learning, technical research, and field notes with clear evidence boundaries."
+>
+  <main id="main-content" class="home-page">
+    <!-- HERO -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="container hero-layout">
+        <div class="hero-copy">
+          <div class="hero-meta">
+            <span class="signal-square" aria-hidden="true"></span>
+            <span>INDEPENDENT TECHNICAL ARCHIVE</span>
+            <span class="accent-green" aria-hidden="true">/</span>
+            <span>EST. 2026</span>
+          </div>
+
+          <p class="hero-path">
+            <span>root@nullsector</span>:~$ ./explore
+            <span class="cursor-block" aria-hidden="true"></span>
+          </p>
+
+          <h1 id="hero-title">
+            NULL<span class="accent-green">_</span><br />
+            SECTOR<span class="accent-blue">.</span>
+          </h1>
+
+          <p class="hero-lead">
+            Investigating digital systems.<br />
+            Documenting what I learn.
+          </p>
+
+          <p class="hero-description">
+            An independent space for cybersecurity, digital forensics,
+            technical learning, and evidence-led research. Exploring
+            systems from satellite infrastructure to malware and
+            incident response.
+          </p>
+
+          <div class="hero-actions">
+            <a class="home-button" href={withBase("/research/")}>
+              <span aria-hidden="true">[→]</span>
+              EXPLORE RESEARCH
+            </a>
+
+            <a class="home-button secondary" href={withBase("/learning/")}>
+              VIEW LEARNING
+              <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+
+          <button
+            class="palette-shortcut"
+            type="button"
+            data-open-palette
+            aria-haspopup="dialog"
+          >
+            <span class="shortcut-icon" aria-hidden="true">⌘</span>
+            SEARCH THE ARCHIVE
+            <kbd>CTRL / ⌘ + K</kbd>
+          </button>
+
+          <div class="hero-bottom-line" aria-hidden="true">
+            <span class="short-line"></span>
+            SCROLL TO EXPLORE
+            <span class="accent-green">↓</span>
+          </div>
+        </div>
+
+        <div class="hero-visual" id="signal-scanner">
+          <div class="panel-bar">
+            <span>NS // SIGNAL SCANNER</span>
+            <span class="panel-active"><span class="signal-square" aria-hidden="true"></span> 04 SIGNALS</span>
+          </div>
+
+          <div class="pixel-field" id="pixel-field">
+            <canvas id="pixel-canvas" aria-hidden="true"></canvas>
+            <div class="field-center" aria-hidden="true">
+              <span class="field-axis"></span>
+              <div class="field-emblem"><span>N</span><span>S</span></div>
+              <span class="field-axis"></span>
+            </div>
+            {
+              scannerSignals.map((signal, index) => (
+                <button
+                  type="button"
+                  class:list={["scanner-beacon", { "is-active": index === 0 }]}
+                  style={`--signal-x:${signal.x}%;--signal-y:${signal.y}%;`}
+                  data-signal={signal.id}
+                  aria-pressed={index === 0 ? "true" : "false"}
+                  aria-label={`Inspect ${signal.label}`}
+                >
+                  <span class="scanner-beacon-icon" aria-hidden="true">{signal.code}</span>
+                  <span class="scanner-beacon-label">{signal.label}</span>
+                </button>
+              ))
+            }
+            <span class="field-coordinate field-coordinate-top" aria-hidden="true">SIGNALS / 04</span>
+            <span class="field-coordinate field-coordinate-bottom" aria-hidden="true">SELECT TO INSPECT</span>
+          </div>
+
+          <div class="scanner-readout" aria-live="polite" aria-atomic="true">
+            <div class="scanner-readout-heading"><span>DETECTED / <span data-signal-index>01</span></span><span data-signal-status>LEARNING</span></div>
+            <h2 data-signal-title>{scannerSignals[0].title}</h2>
+            <p data-signal-description>{scannerSignals[0].description}</p>
+            <a class="scanner-readout-link" data-signal-link href={scannerSignals[0].href}>
+              <span data-signal-action>{scannerSignals[0].action}</span><span aria-hidden="true">↗</span>
+            </a>
+            <div class="scanner-related" data-signal-related hidden>
+              <span>CONNECTED SATELLITE RECORDS</span>
+              <a href={withBase("/learning/satellite-cybersecurity/")}>Satellite cybersecurity learning ↗</a>
+              <a href={withBase("/field-notes/satellite-orbital-data-basics/")}>Orbital-data reference note ↗</a>
+            </div>
+          </div>
+          <div class="panel-bar panel-bar-bottom">
+            <span>SELECT A LABELED SIGNAL / KEYBOARD ACCESSIBLE</span>
+            <span>CONTENT INDEX</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-edge-label" aria-hidden="true">
+        NS—001 / OBSERVE · ANALYSE · DOCUMENT
+      </div>
+    </section>
+
+    <!-- LEARNING -->
+    <section
+      class="home-section learning-section"
+      aria-labelledby="learning-title"
+    >
+      <div class="container">
+        <div class="section-topline">
+          <span class="section-eyebrow">[ 01 / LEARNING ]</span>
+          <span class="section-code">KNOWLEDGE.LOG</span>
+        </div>
+
+        <div class="section-intro">
+          <h2 id="learning-title">
+            Always <span class="accent-green">learning.</span>
+          </h2>
+          <p>
+            A record of completed training, coursework, and technical
+            development. Course completion and professional
+            certification are distinguished explicitly.
+          </p>
+        </div>
+
+        <div class="learning-grid">
+          {
+            learningHighlights.map((item) => (
+              <a class="learning-entry" href={item.href}>
+                <div class="learning-entry-top">
+                  <span>{item.index} / {item.type}</span>
+                  <span class="entry-status">
+                    <span class="signal-square" aria-hidden="true"></span>
+                    {item.status}
+                  </span>
+                </div>
+
+                <div class="learning-entry-body">
+                  <span class="entry-provider">{item.provider}</span>
+                  <h3>{item.title}</h3>
+                  <p>{item.description}</p>
+                </div>
+
+                <div class="entry-footer">
+                  <span>READ LEARNING RECORD</span>
+                  <span aria-hidden="true">↗</span>
+                </div>
+              </a>
+            ))
+          }
+        </div>
+
+        <div class="section-end">
+          <span class="section-end-line"></span>
+          <a class="home-inline-link" href={withBase("/learning/")}>
+            VIEW LEARNING ARCHIVE <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURED RESEARCH / ORBITAL VISUAL -->
+    <section
+      class="home-section orbital-section"
+      aria-labelledby="featured-title"
+    >
+      <div class="container">
+        <div class="section-topline">
+          <span class="section-eyebrow blue">
+            [ 02 / FEATURED RESEARCH ]
+          </span>
+          <span class="section-code">ORBITAL.DATA / REFERENCE</span>
+        </div>
+
+        <div class="orbital-layout">
+          <div class="orbital-copy">
+            <div class="featured-meta">
+              <span>SPACE SYSTEMS / SATELLITE OSINT</span>
+              <span>PUBLIC-SOURCE RESEARCH</span>
+            </div>
+
+            <h2 id="featured-title">
+              Satellite OSINT:
+              <span class="accent-blue">
+                public orbital data.
+              </span>
+            </h2>
+
+            <p class="orbital-description">
+              A source-based examination of historical ISS orbital
+              information, including mean motion, a derived approximate
+              period, provenance, and the limits of what public data
+              can establish.
+            </p>
+
+            <div class="orbital-metric">
+              <span>HISTORICAL MEAN MOTION</span>
+              <strong>15.49535659</strong>
+              <small>REVOLUTIONS / DAY</small>
+            </div>
+
+            <a
+              class="home-button"
+              href={withBase("/research/satellite-osint-methodology/")}
+            >
+              READ THE RESEARCH
+              <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+
+          <div class="orbit-module" id="orbit-module">
+            <div class="panel-bar">
+              <span>ORBITAL / EXPLAINER</span>
+              <span class="accent-blue">ILLUSTRATIVE</span>
+            </div>
+
+            <div class="orbit-stage">
+              <svg
+                class="orbit-svg"
+                viewBox="0 0 500 400"
+                role="img"
+                aria-label="Illustrative orbital path surrounding a stylized Earth; not a live satellite position"
+              >
+                <defs>
+                  <radialGradient id="earth-shading">
+                    <stop offset="0%" stop-color="#203d43" />
+                    <stop offset="75%" stop-color="#11272c" />
+                    <stop offset="100%" stop-color="#09191d" />
+                  </radialGradient>
+                </defs>
+
+                <g class="orbit-grid-svg">
+                  {
+                    Array.from({ length: 11 }, (_, index) => (
+                      <line
+                        x1={index * 50}
+                        y1="0"
+                        x2={index * 50}
+                        y2="400"
+                      />
+                    ))
+                  }
+                  {
+                    Array.from({ length: 9 }, (_, index) => (
+                      <line
+                        x1="0"
+                        y1={index * 50}
+                        x2="500"
+                        y2={index * 50}
+                      />
+                    ))
+                  }
+                </g>
+
+                <line
+                  class="orbit-axis"
+                  x1="250"
+                  y1="0"
+                  x2="250"
+                  y2="400"
+                />
+                <line
+                  class="orbit-axis"
+                  x1="0"
+                  y1="200"
+                  x2="500"
+                  y2="200"
+                />
+
+                <circle
+                  class="orbit-outer-guide"
+                  cx="250"
+                  cy="200"
+                  r="165"
+                />
+
+                <g class="orbit-earth">
+                  <circle
+                    cx="250"
+                    cy="200"
+                    r="92"
+                    fill="url(#earth-shading)"
+                    stroke="#4c8992"
+                    stroke-width="1.5"
+                  />
+                  <ellipse
+                    cx="250"
+                    cy="200"
+                    rx="35"
+                    ry="92"
+                    fill="none"
+                    stroke="#4c8992"
+                    stroke-opacity=".4"
+                  />
+                  <ellipse
+                    cx="250"
+                    cy="200"
+                    rx="72"
+                    ry="92"
+                    fill="none"
+                    stroke="#4c8992"
+                    stroke-opacity=".2"
+                  />
+                  <path
+                    d="M158 200H342 M170 155H330 M170 245H330"
+                    stroke="#4c8992"
+                    stroke-opacity=".3"
+                    fill="none"
+                  />
+                  <path
+                    d="M218 138l18-11 24 8 9 21-12 16-22 3-11 23-25-9-9-26z"
+                    fill="#609a88"
+                    fill-opacity=".32"
+                  />
+                  <path
+                    d="M265 217l23-5 19 16-7 30-20 24-16-9-7-31z"
+                    fill="#609a88"
+                    fill-opacity=".28"
+                  />
+                </g>
+
+                <g
+                  class="orbit-track"
+                  transform="rotate(-27 250 200)"
+                >
+                  <ellipse
+                    cx="250"
+                    cy="200"
+                    rx="205"
+                    ry="122"
+                    fill="none"
+                    stroke="#83c4d0"
+                    stroke-width="1.5"
+                    stroke-dasharray="6 7"
+                  />
+
+                  <g class="orbit-satellite">
+                    <rect
+                      x="445"
+                      y="190"
+                      width="20"
+                      height="20"
+                      fill="#b1e8bd"
+                    />
+                    <rect
+                      x="429"
+                      y="194"
+                      width="12"
+                      height="12"
+                      fill="#7bb6c3"
+                    />
+                    <rect
+                      x="469"
+                      y="194"
+                      width="12"
+                      height="12"
+                      fill="#7bb6c3"
+                    />
+                    <line
+                      x1="441"
+                      y1="200"
+                      x2="469"
+                      y2="200"
+                      stroke="#b1e8bd"
+                      stroke-width="2"
+                    />
+                  </g>
+                </g>
+
+                <text x="18" y="28" class="orbit-svg-label">
+                  REF / ISS
+                </text>
+                <text x="18" y="382" class="orbit-svg-label">
+                  NOT TO SCALE
+                </text>
+                <text
+                  x="482"
+                  y="382"
+                  text-anchor="end"
+                  class="orbit-svg-label"
+                >
+                  NO LIVE POSITION
+                </text>
+              </svg>
+            </div>
+
+            <div class="orbit-controls">
+              {
+                orbitalModes.map((mode, index) => (
+                  <button
+                    type="button"
+                    class:list={[
+                      "orbit-mode",
+                      { "is-active": index === 0 },
+                    ]}
+                    data-orbit-mode={mode.id}
+                    aria-pressed={index === 0 ? "true" : "false"}
+                  >
+                    {mode.label}
+                  </button>
+                ))
+              }
+            </div>
+
+            <div
+              class="orbit-readout"
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              <span data-orbit-title>
+                {orbitalModes[0].title}
+              </span>
+              <strong data-orbit-value>
+                {orbitalModes[0].value}
+              </strong>
+              <p data-orbit-description>
+                {orbitalModes[0].description}
+              </p>
+            </div>
+
+            <div class="orbit-disclaimer">
+              ILLUSTRATIVE VISUALIZATION / NOT LIVE TRACKING /
+              NO SGP4 PROPAGATION
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INVESTIGATION NETWORK -->
+    <section
+      class="home-section network-section"
+      aria-labelledby="research-title"
+    >
+      <div class="container">
+        <div class="section-topline">
+          <span class="section-eyebrow blue">
+            [ 03 / RESEARCH DOMAINS ]
+          </span>
+          <span class="section-code">INVESTIGATION.MAP</span>
+        </div>
+
+        <div class="section-intro">
+          <h2 id="research-title">
+            Areas of
+            <span class="accent-blue"> investigation.</span>
+          </h2>
+          <p>
+            Eight connected areas of study. Select a node to explore
+            its focus and discover whether related work has been
+            published. Connections are thematic, not measured data.
+          </p>
+        </div>
+
+        <div class="network-layout" id="research-network">
+          <div class="network-panel">
+            <div class="panel-bar">
+              <span>DOMAIN RELATIONSHIPS</span>
+              <span>08 NODES</span>
+            </div>
+
+            <div class="network-canvas">
+              <svg
+                class="network-lines"
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                {
+                  [
+                    [0, 1],
+                    [0, 7],
+                    [0, 6],
+                    [1, 2],
+                    [1, 3],
+                    [2, 3],
+                    [2, 7],
+                    [3, 4],
+                    [3, 6],
+                    [4, 5],
+                    [4, 7],
+                    [5, 6],
+                    [5, 7],
+                    [6, 7],
+                  ].map(([start, end]) => (
+                    <line
+                      x1={researchAreas[start].x}
+                      y1={researchAreas[start].y}
+                      x2={researchAreas[end].x}
+                      y2={researchAreas[end].y}
+                    />
+                  ))
+                }
+              </svg>
+
+              <div class="network-center" aria-hidden="true">
+                <span>NS</span>
+                <small>DOMAIN INDEX</small>
+              </div>
+
+              {
+                researchAreas.map((area, index) => (
+                  <button
+                    type="button"
+                    class:list={[
+                      "network-node",
+                      { "is-active": index === 0 },
+                    ]}
+                    style={`--node-x:${area.x}%;--node-y:${area.y}%;`}
+                    data-network-node={area.number}
+                    aria-label={`Explore ${area.title}`}
+                    aria-pressed={index === 0 ? "true" : "false"}
+                    title={area.title}
+                  >
+                    <span class="node-symbol">{area.symbol}</span>
+                    <span class="node-number">{area.number}</span>
+                  </button>
+                ))
+              }
+            </div>
+
+            <div class="network-footer">
+              <span>SELECT A NODE TO INSPECT</span>
+              <span>CONCEPTUAL CONNECTIONS</span>
+            </div>
+          </div>
+
+          <div class="network-inspector">
+            <div class="inspector-header">
+              <span>NODE INSPECTOR</span>
+              <span data-node-number>01 / 08</span>
+            </div>
+
+            <div class="inspector-content" aria-live="polite">
+              <span class="inspector-category" data-node-category>
+                {researchAreas[0].category}
+              </span>
+
+              <h3 data-node-title>{researchAreas[0].title}</h3>
+
+              <p data-node-description>
+                {researchAreas[0].description}
+              </p>
+
+              <div class="inspector-status">
+                <span>CONTENT STATUS</span>
+                <strong data-node-status>
+                  {researchAreas[0].related}
+                </strong>
+              </div>
+
+              <a
+                class="inspector-link"
+                data-node-link
+                href={researchAreas[0].href}
+              >
+                VIEW RELATED WORK
+                <span aria-hidden="true">↗</span>
+              </a>
+            </div>
+
+            <div class="inspector-bottom">
+              SELECTABLE TOPICS / NOT A RECORD OF EIGHT
+              COMPLETED INVESTIGATIONS
+            </div>
+          </div>
+        </div>
+
+        <div class="research-topic-index">
+          {
+            researchAreas.map((area) => (
+              <button
+                type="button"
+                class:list={[
+                  "topic-button",
+                  { "is-active": area.number === "01" },
+                ]}
+                data-topic-select={area.number}
+                aria-pressed={area.number === "01" ? "true" : "false"}
+              >
+                <span>{area.number}</span>
+                {area.title}
+              </button>
+            ))
+          }
+        </div>
+
+        <div class="section-end">
+          <span class="section-end-line"></span>
+          <a class="home-inline-link" href={withBase("/research/")}>
+            EXPLORE RESEARCH ARCHIVE
+            <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FIELD NOTES -->
+    <section
+      class="home-section notes-section"
+      aria-labelledby="notes-title"
+    >
+      <div class="container notes-layout">
+        <div class="notes-copy">
+          <div class="section-topline">
+            <span class="section-eyebrow">
+              [ 04 / FIELD NOTES ]
+            </span>
+          </div>
+
+          <h2 id="notes-title">
+            Notes from<br />
+            the <span class="accent-green">terminal.</span>
+          </h2>
+
+          <p>
+            Technical references, smaller observations, working
+            explanations, and documented methods. Field Notes provide
+            a place for focused writing that does not require a full
+            research article.
+          </p>
+
+          <div class="notes-feature">
+            <span>LATEST REFERENCE NOTE</span>
+
+            <a href={withBase("/field-notes/satellite-orbital-data-basics/")}>
+              Satellite Orbital Data: Reading the Basics
+              <span aria-hidden="true">↗</span>
+            </a>
+
+            <small>TLE STRUCTURE / MEAN MOTION / EPOCHS / SGP4</small>
+          </div>
+
+          <a class="home-inline-link" href={withBase("/field-notes/")}>
+            OPEN FIELD NOTES
+            <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+
+
+      </div>
+    </section>
+
+    <!-- CLOSING -->
+    <section
+      class="closing-section"
+      aria-labelledby="closing-title"
+    >
+      <div class="container closing-inner">
+        <span class="section-eyebrow">[ SYSTEM MESSAGE ]</span>
+
+        <h2 id="closing-title">
+          Stay curious<span class="accent-green">_</span>
+        </h2>
+
+        <p>
+          Learn the systems. Question the assumptions.<br />
+          Follow the evidence.
+        </p>
+
+        <a class="home-button secondary" href={withBase("/about/")}>
+          MORE ABOUT NULL SECTOR
+          <span aria-hidden="true">↗</span>
+        </a>
+
+        <div class="closing-decoration" aria-hidden="true">
+          {
+            Array.from({ length: 12 }, (_, index) => (
+              <span class={index % 3 === 2 ? "blue" : ""}></span>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- COMMAND PALETTE -->
+  <dialog
+    class="command-palette"
+    id="command-palette"
+    aria-labelledby="palette-title"
+  >
+    <div class="palette-shell">
+      <div class="palette-heading">
+        <span id="palette-title">NULL SECTOR / QUICK ACCESS</span>
+        <button
+          type="button"
+          class="palette-close"
+          data-close-palette
+          aria-label="Close command palette"
+        >
+          ESC ×
+        </button>
+      </div>
+
+      <label class="palette-search">
+        <span aria-hidden="true">⌕</span>
+        <input
+          type="search"
+          id="palette-input"
+          placeholder="Search pages, research, learning..."
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </label>
+
+      <div
+        class="palette-results"
+        id="palette-results"
+        role="list"
+        aria-label="Search results"
+      >
+        {
+          navigationItems.map((item) => (
+            <a
+              href={item.href}
+              class="palette-result"
+              data-search-label={`${item.label} ${item.keywords}`.toLowerCase()}
+              role="listitem"
+            >
+              <span class="palette-result-name">{item.label}</span>
+              <span class="palette-result-group">
+                {item.group}
+                <span aria-hidden="true">↗</span>
+              </span>
+            </a>
+          ))
+        }
+      </div>
+
+      <p class="palette-empty" id="palette-empty" hidden>
+        NO MATCHING RECORDS
+      </p>
+
+      <div class="palette-footer">
+        <span>↑ ↓ NAVIGATE</span>
+        <span>ENTER OPEN</span>
+        <span>ESC CLOSE</span>
+      </div>
+    </div>
+  </dialog>
+</BaseLayout>
+
+<script>
+  const basePath = import.meta.env.BASE_URL;
+
+  function withBase(path: string): string {
+    const base = basePath.endsWith("/") ? basePath : `${basePath}/`;
+    return `${base}${path.replace(/^\/+/, "")}`;
+  }
+
+  const scannerSignals = [
+    { id: "learning", label: "LEARNING", title: "Learning archive", description: "Three documented training and course-completion records, with credentials and limitations stated clearly.", href: withBase("/learning/"), action: "OPEN LEARNING" },
+    { id: "research", label: "RESEARCH", title: "Research archive", description: "Public-source satellite OSINT research, including historical orbital-data provenance and evidence boundaries.", href: withBase("/research/"), action: "OPEN RESEARCH" },
+    { id: "notes", label: "FIELD NOTES", title: "Field Notes", description: "Focused technical references, beginning with TLE structure, mean motion, epochs, and SGP4 concepts.", href: withBase("/field-notes/"), action: "OPEN FIELD NOTES" },
+    { id: "about", label: "ABOUT", title: "About NULL SECTOR", description: "The purpose of this independent archive, its areas of interest, and its approach to documenting evidence.", href: withBase("/about/"), action: "READ ABOUT" },
+  ];
+
+  const researchAreas = [
+    {
+      number: "01",
+      title: "Satellite Security",
+      category: "SPACE SYSTEMS",
+      description:
+        "Spacecraft architecture, orbital information, ground infrastructure, and communications security.",
+      related: "PUBLISHED RESEARCH",
+      href: withBase("/research/satellite-osint-methodology/"),
+    },
+    {
+      number: "02",
+      title: "Drone Forensics",
+      category: "UNCREWED SYSTEMS",
+      description:
+        "Flight records, controllers, navigation artifacts, firmware, and digital evidence.",
+      related: "AREA OF INTEREST",
+      href: "",
+    },
+    {
+      number: "03",
+      title: "Mobile Forensics",
+      category: "MOBILE SYSTEMS",
+      description:
+        "Mobile-device artifacts, application data, timelines, and investigative methods.",
+      related: "AREA OF INTEREST",
+      href: "",
+    },
+    {
+      number: "04",
+      title: "IoT Forensics",
+      category: "EMBEDDED SYSTEMS",
+      description:
+        "Connected devices, firmware, network activity, and embedded-system evidence.",
+      related: "AREA OF INTEREST",
+      href: "",
+    },
+    {
+      number: "05",
+      title: "Vehicle Security",
+      category: "AUTOMOTIVE",
+      description:
+        "Automotive networks, embedded controllers, and vehicle-related forensic questions.",
+      related: "AREA OF INTEREST",
+      href: "",
+    },
+    {
+      number: "06",
+      title: "Ethical Hacking",
+      category: "OFFENSIVE SECURITY",
+      description:
+        "Authorised security testing, vulnerability concepts, and defensive understanding.",
+      related: "AREA OF INTEREST",
+      href: "",
+    },
+    {
+      number: "07",
+      title: "Malware Analysis",
+      category: "REVERSE ENGINEERING",
+      description:
+        "Malicious-code behaviour, operating-system internals, and forensic artifacts.",
+      related: "RELATED LEARNING",
+      href: withBase("/learning/maldev-academy/"),
+    },
+    {
+      number: "08",
+      title: "Incident Response",
+      category: "DEFENSIVE SECURITY",
+      description:
+        "Alert triage, log correlation, network evidence, and incident investigation.",
+      related: "RELATED LEARNING",
+      href: withBase("/learning/tryhackme-sal1/"),
+    },
+  ];
+
+  const orbitalModes = [
+    {
+      id: "period",
+      title: "Approximate orbital period",
+      value: "92.93 MIN",
+      description:
+        "A historical published mean-motion value of 15.49535659 revolutions per day gives an approximate orbital period of 92.93 minutes.",
+    },
+    {
+      id: "source",
+      title: "Public-source provenance",
+      value: "HISTORICAL DATA",
+      description:
+        "The cited orbital information originated with CelesTrak and was reproduced in a ByteTools technical reference. This portfolio did not independently capture the dataset.",
+    },
+    {
+      id: "limits",
+      title: "What this display represents",
+      value: "ILLUSTRATIVE",
+      description:
+        "This is a stylized educational diagram, not a real-time ISS position, SGP4 propagation result, orbital reconstruction, or satellite-security test.",
+    },
+  ];
+
+  function initHomepage() {
+    const root = document.querySelector<HTMLElement>(".home-page");
+
+    if (!root || root.dataset.initialized === "true") return;
+
+    root.dataset.initialized = "true";
+
+    const cleanup: Array<() => void> = [];
+
+    const listen = <K extends keyof DocumentEventMap>(
+      target: Document,
+      event: K,
+      handler: (event: DocumentEventMap[K]) => void
+    ) => {
+      target.addEventListener(event, handler);
+      cleanup.push(() => target.removeEventListener(event, handler));
+    };
+
+    // Signal scanner: navigation, not another archive listing.
+    const scanner = document.querySelector<HTMLElement>("#signal-scanner");
+    if (scanner) {
+      const beacons = Array.from(scanner.querySelectorAll<HTMLButtonElement>("[data-signal]"));
+      const title = scanner.querySelector<HTMLElement>("[data-signal-title]");
+      const description = scanner.querySelector<HTMLElement>("[data-signal-description]");
+      const index = scanner.querySelector<HTMLElement>("[data-signal-index]");
+      const status = scanner.querySelector<HTMLElement>("[data-signal-status]");
+      const link = scanner.querySelector<HTMLAnchorElement>("[data-signal-link]");
+      const action = scanner.querySelector<HTMLElement>("[data-signal-action]");
+      const related = scanner.querySelector<HTMLElement>("[data-signal-related]");
+
+      function selectSignal(id: string) {
+        const selectedIndex = scannerSignals.findIndex((signal) => signal.id === id);
+        const signal = scannerSignals[selectedIndex];
+        if (!signal || !title || !description || !index || !status || !link || !action || !related) return;
+        title.textContent = signal.title;
+        description.textContent = signal.description;
+        index.textContent = String(selectedIndex + 1).padStart(2, "0");
+        status.textContent = signal.label;
+        link.href = signal.href;
+        action.textContent = signal.action;
+        related.hidden = id !== "research";
+        beacons.forEach((beacon) => {
+          const active = beacon.dataset.signal === id;
+          beacon.classList.toggle("is-active", active);
+          beacon.setAttribute("aria-pressed", String(active));
+        });
+        scanner?.querySelector("#pixel-field")?.dispatchEvent(
+  new CustomEvent("signal:select", { detail: { id } })
+);
+      }
+
+      beacons.forEach((beacon) => {
+        const handler = () => selectSignal(beacon.dataset.signal ?? "");
+        beacon.addEventListener("click", handler);
+        cleanup.push(() => beacon.removeEventListener("click", handler));
+      });
+    }
+
+    // Orbital annotation controls
+    const orbitModule = document.querySelector<HTMLElement>(
+      "#orbit-module"
+    );
+
+    if (orbitModule) {
+      const buttons = Array.from(
+        orbitModule.querySelectorAll<HTMLButtonElement>(
+          "[data-orbit-mode]"
+        )
+      );
+
+      const title = orbitModule.querySelector<HTMLElement>(
+        "[data-orbit-title]"
+      );
+      const value = orbitModule.querySelector<HTMLElement>(
+        "[data-orbit-value]"
+      );
+      const description = orbitModule.querySelector<HTMLElement>(
+        "[data-orbit-description]"
+      );
+
+      function selectOrbitMode(id: string) {
+        const mode = orbitalModes.find(
+          (entry) => entry.id === id
+        );
+
+        if (!mode || !title || !value || !description) return;
+
+        title.textContent = mode.title;
+        value.textContent = mode.value;
+        description.textContent = mode.description;
+
+        buttons.forEach((button) => {
+          const active = button.dataset.orbitMode === id;
+          button.classList.toggle("is-active", active);
+          button.setAttribute("aria-pressed", String(active));
+        });
+      }
+
+      buttons.forEach((button) => {
+        const handler = () => {
+          selectOrbitMode(button.dataset.orbitMode ?? "");
+        };
+
+        button.addEventListener("click", handler);
+        cleanup.push(() =>
+          button.removeEventListener("click", handler)
+        );
+      });
+    }
+
+    // Research network
+    const network = document.querySelector<HTMLElement>(
+      "#research-network"
+    );
+
+    if (network) {
+      const nodeButtons = Array.from(
+        document.querySelectorAll<HTMLButtonElement>(
+          "[data-network-node]"
+        )
+      );
+
+      const topicButtons = Array.from(
+        document.querySelectorAll<HTMLButtonElement>(
+          "[data-topic-select]"
+        )
+      );
+
+      const number = network.querySelector<HTMLElement>(
+        "[data-node-number]"
+      );
+      const category = network.querySelector<HTMLElement>(
+        "[data-node-category]"
+      );
+      const title = network.querySelector<HTMLElement>(
+        "[data-node-title]"
+      );
+      const description = network.querySelector<HTMLElement>(
+        "[data-node-description]"
+      );
+      const status = network.querySelector<HTMLElement>(
+        "[data-node-status]"
+      );
+      const link = network.querySelector<HTMLAnchorElement>(
+        "[data-node-link]"
+      );
+
+      function selectNode(id: string) {
+        const area = researchAreas.find(
+          (entry) => entry.number === id
+        );
+
+        if (
+          !area ||
+          !number ||
+          !category ||
+          !title ||
+          !description ||
+          !status ||
+          !link
+        ) {
+          return;
+        }
+
+        number.textContent = `${area.number} / 08`;
+        category.textContent = area.category;
+        title.textContent = area.title;
+        description.textContent = area.description;
+        status.textContent = area.related;
+
+        if (area.href) {
+          link.href = area.href;
+          link.hidden = false;
+        } else {
+          link.removeAttribute("href");
+          link.hidden = true;
+        }
+
+        nodeButtons.forEach((button) => {
+          const active = button.dataset.networkNode === id;
+          button.classList.toggle("is-active", active);
+          button.setAttribute("aria-pressed", String(active));
+        });
+
+        topicButtons.forEach((button) => {
+          const active = button.dataset.topicSelect === id;
+          button.classList.toggle("is-active", active);
+          button.setAttribute("aria-pressed", String(active));
+        });
+      }
+
+      const allButtons = [...nodeButtons, ...topicButtons];
+
+      allButtons.forEach((button) => {
+        const handler = () => {
+          selectNode(
+            button.dataset.networkNode ??
+              button.dataset.topicSelect ??
+              ""
+          );
+        };
+
+        button.addEventListener("click", handler);
+        cleanup.push(() =>
+          button.removeEventListener("click", handler)
+        );
+      });
+    }
+
+    // Command palette
+    const palette = document.querySelector<HTMLDialogElement>(
+      "#command-palette"
+    );
+    const paletteInput = document.querySelector<HTMLInputElement>(
+      "#palette-input"
+    );
+    const paletteEmpty = document.querySelector<HTMLElement>(
+      "#palette-empty"
+    );
+
+    const paletteResults = Array.from(
+      document.querySelectorAll<HTMLAnchorElement>(
+        ".palette-result"
+      )
+    );
+
+    let selectedResult = 0;
+
+    function visibleResults() {
+      return paletteResults.filter((item) => !item.hidden);
+    }
+
+    function highlightResult(index: number) {
+      const visible = visibleResults();
+
+      if (!visible.length) return;
+
+      selectedResult =
+        ((index % visible.length) + visible.length) %
+        visible.length;
+
+      paletteResults.forEach((item) => {
+        item.classList.remove("is-selected");
+      });
+
+      const selected = visible[selectedResult];
+
+      selected.classList.add("is-selected");
+      selected.scrollIntoView({
+        block: "nearest",
+        behavior: "instant",
+      });
+    }
+
+    function filterResults() {
+      const query = paletteInput?.value
+        .trim()
+        .toLowerCase() ?? "";
+
+      paletteResults.forEach((item) => {
+        const searchable = item.dataset.searchLabel ?? "";
+        item.hidden = !searchable.includes(query);
+      });
+
+      const visible = visibleResults();
+
+      if (paletteEmpty) {
+        paletteEmpty.hidden = visible.length > 0;
+      }
+
+      selectedResult = 0;
+
+      if (visible.length) highlightResult(0);
+    }
+
+    function openPalette() {
+      if (!palette || !paletteInput) return;
+
+      if (!palette.open) palette.showModal();
+
+      paletteInput.value = "";
+      filterResults();
+      paletteInput.focus();
+    }
+
+    function closePalette() {
+      if (palette?.open) palette.close();
+    }
+
+    const openButtons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>(
+        "[data-open-palette]"
+      )
+    );
+
+    const closeButton = document.querySelector<HTMLButtonElement>(
+      "[data-close-palette]"
+    );
+
+    openButtons.forEach((button) => {
+      button.addEventListener("click", openPalette);
+      cleanup.push(() =>
+        button.removeEventListener("click", openPalette)
+      );
+    });
+
+    closeButton?.addEventListener("click", closePalette);
+    cleanup.push(() =>
+      closeButton?.removeEventListener("click", closePalette)
+    );
+
+    paletteInput?.addEventListener("input", filterResults);
+    cleanup.push(() =>
+      paletteInput?.removeEventListener("input", filterResults)
+    );
+
+    const handleKeys = (event: KeyboardEvent) => {
+      const target = event.target;
+
+      const isTyping =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        (target instanceof HTMLElement &&
+          target.isContentEditable);
+
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        event.key.toLowerCase() === "k"
+      ) {
+        event.preventDefault();
+
+        if (palette?.open) {
+          closePalette();
+        } else {
+          openPalette();
+        }
+
+        return;
+      }
+
+      if (
+        event.key === "/" &&
+        !isTyping &&
+        !event.altKey &&
+        !event.ctrlKey &&
+        !event.metaKey
+      ) {
+        event.preventDefault();
+        openPalette();
+        return;
+      }
+
+      if (!palette?.open) return;
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        highlightResult(selectedResult + 1);
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        highlightResult(selectedResult - 1);
+      }
+
+      if (event.key === "Enter") {
+        const selected = visibleResults()[selectedResult];
+
+        if (selected) {
+          event.preventDefault();
+          window.location.assign(selected.href);
+        }
+      }
+    };
+
+    listen(document, "keydown", handleKeys);
+
+    // Signal-field canvas
+    const canvas = document.querySelector<HTMLCanvasElement>(
+      "#pixel-canvas"
+    );
+    const field = document.querySelector<HTMLElement>(
+      "#pixel-field"
+    );
+
+    if (canvas && field) {
+      initSignalField(canvas, field, cleanup);
+    }
+
+    function destroy() {
+      cleanup.forEach((dispose) => dispose());
+      root?.removeAttribute("data-initialized");
+      document.removeEventListener("astro:before-swap", destroy);
+    }
+
+    document.addEventListener(
+      "astro:before-swap",
+      destroy,
+      { once: true }
+    );
+  }
+
+  function initSignalField(
+    canvas: HTMLCanvasElement,
+    field: HTMLElement,
+    cleanup: Array<() => void>
+  ) {
+    const context = canvas.getContext("2d");
+
+    if (!context) return;
+
+    const motionQuery = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    );
+
+    const cellSize = 16;
+
+    let width = 0;
+    let height = 0;
+    let columns = 0;
+    let rows = 0;
+    let time = 0;
+    let frame = 0;
+    let visible = true;
+    let destroyed = false;
+
+    let pointerX = -1000;
+    let pointerY = -1000;
+
+    const pulses: Array<{
+      x: number;
+      y: number;
+      age: number;
+    }> = [];
+
+    function resize() {
+      if (destroyed) return;
+
+      const bounds = field.getBoundingClientRect();
+
+      width = bounds.width;
+      height = bounds.height;
+
+      if (width <= 0 || height <= 0) return;
+
+      const ratio = Math.min(
+        window.devicePixelRatio || 1,
+        2
+      );
+
+      columns = Math.ceil(width / cellSize);
+      rows = Math.ceil(height / cellSize);
+
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+
+      context!.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+      draw();
+    }
+
+    function draw() {
+      if (destroyed || !width || !height) return;
+
+      context!.clearRect(0, 0, width, height);
+
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < columns; x++) {
+          const px = x * cellSize + cellSize / 2;
+          const py = y * cellSize + cellSize / 2;
+
+          const distance = Math.hypot(
+            px - pointerX,
+            py - pointerY
+          );
+
+          const proximity = Math.max(
+            0,
+            1 - distance / 150
+          );
+
+          const wave =
+            Math.sin(x * 0.38 + time * 0.018) *
+            Math.cos(y * 0.35 + time * 0.013);
+
+          let pulseIntensity = 0;
+
+          pulses.forEach((pulse) => {
+            const pulseDistance = Math.hypot(
+              px - pulse.x,
+              py - pulse.y
+            );
+
+            const radius = pulse.age * 5;
+
+            pulseIntensity = Math.max(
+              pulseIntensity,
+              Math.max(
+                0,
+                1 - Math.abs(pulseDistance - radius) / 35
+              ) *
+                Math.max(0, 1 - pulse.age / 75)
+            );
+          });
+
+          const opacity = Math.min(
+            0.95,
+            0.08 +
+              Math.max(0, wave) * 0.12 +
+              proximity * 0.65 +
+              pulseIntensity * 0.65
+          );
+
+          const isBlue = (x + y * 3) % 7 === 0;
+
+          context!.fillStyle = isBlue
+            ? `rgba(120,183,194,${opacity})`
+            : `rgba(145,213,165,${opacity})`;
+
+          const size =
+            proximity > 0.2 || pulseIntensity > 0.2
+              ? 5
+              : 3;
+
+          context!.fillRect(
+            px - size / 2,
+            py - size / 2,
+            size,
+            size
+          );
+        }
+      }
+
+      pulses.forEach((pulse) => {
+        const opacity = Math.max(
+          0,
+          0.5 * (1 - pulse.age / 75)
+        );
+
+        context!.strokeStyle =
+          `rgba(120,183,194,${opacity})`;
+
+        context!.lineWidth = 1;
+        context!.beginPath();
+        context!.arc(
+          pulse.x,
+          pulse.y,
+          pulse.age * 5,
+          0,
+          Math.PI * 2
+        );
+        context!.stroke();
+      });
+    }
+
+    function shouldAnimate() {
+      return (
+        !destroyed &&
+        !motionQuery.matches &&
+        visible &&
+        !document.hidden
+      );
+    }
+
+    function stop() {
+      window.cancelAnimationFrame(frame);
+      frame = 0;
+    }
+
+    function animate() {
+      if (!shouldAnimate()) {
+        frame = 0;
+        return;
+      }
+
+      time += 1;
+
+      pulses.forEach((pulse) => {
+        pulse.age += 1;
+      });
+
+      for (let index = pulses.length - 1; index >= 0; index--) {
+        if (pulses[index].age >= 75) {
+          pulses.splice(index, 1);
+        }
+      }
+
+      draw();
+      frame = window.requestAnimationFrame(animate);
+    }
+
+    function restart() {
+      stop();
+
+      if (shouldAnimate()) {
+        frame = window.requestAnimationFrame(animate);
+      } else if (!destroyed) {
+        draw();
+      }
+    }
+
+    function pointerMove(event: PointerEvent) {
+      const bounds = field.getBoundingClientRect();
+
+      pointerX = event.clientX - bounds.left;
+      pointerY = event.clientY - bounds.top;
+
+      if (motionQuery.matches) draw();
+    }
+
+    function pointerLeave() {
+      pointerX = -1000;
+      pointerY = -1000;
+
+      if (motionQuery.matches) draw();
+    }
+
+    function signalSelect(event: Event) {
+      const id = (event as CustomEvent<{ id: string }>).detail?.id;
+      const beacon = Array.from(field.querySelectorAll<HTMLElement>("[data-signal]"))
+        .find((item) => item.dataset.signal === id);
+      if (!beacon) return;
+      const fieldBounds = field.getBoundingClientRect();
+      const beaconBounds = beacon.getBoundingClientRect();
+      const x = beaconBounds.left + beaconBounds.width / 2 - fieldBounds.left;
+      const y = beaconBounds.top + beaconBounds.height / 2 - fieldBounds.top;
+      pointerX = x;
+      pointerY = y;
+      if (!motionQuery.matches) {
+        pulses.push({ x, y, age: 0 });
+        if (pulses.length > 5) pulses.shift();
+      } else {
+        draw();
+      }
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        visible = entries[0]?.isIntersecting ?? false;
+        restart();
+      },
+      { threshold: 0.05 }
+    );
+
+    const resizeObserver = new ResizeObserver(resize);
+
+    observer.observe(field);
+    resizeObserver.observe(field);
+
+    field.addEventListener("pointermove", pointerMove, {
+      passive: true,
+    });
+    field.addEventListener("pointerleave", pointerLeave);
+    field.addEventListener("signal:select", signalSelect);
+
+    document.addEventListener(
+      "visibilitychange",
+      restart
+    );
+
+    motionQuery.addEventListener("change", restart);
+
+    cleanup.push(() => {
+      destroyed = true;
+      stop();
+
+      observer.disconnect();
+      resizeObserver.disconnect();
+
+      field.removeEventListener(
+        "pointermove",
+        pointerMove
+      );
+      field.removeEventListener(
+        "pointerleave",
+        pointerLeave
+      );
+      field.removeEventListener("signal:select", signalSelect);
+
+      document.removeEventListener(
+        "visibilitychange",
+        restart
+      );
+
+      motionQuery.removeEventListener(
+        "change",
+        restart
+      );
+    });
+
+    resize();
+    restart();
+  }
+
+  initHomepage();
+
+  document.addEventListener(
+    "astro:after-swap",
+    initHomepage
+  );
+</script>
+
+<style>
+  /* ---------------------------------------
+     HOMEPAGE DESIGN TOKENS
+  --------------------------------------- */
+
+  .home-page {
+    --home-green: var(--green);
+    --home-blue: var(--blue);
+    --home-text: var(--text);
+    --home-muted: var(--text-muted);
+    --home-dim: var(--text-dim);
+    --home-bg: var(--bg);
+    --home-raised: var(--bg-raised);
+    --home-panel: var(--bg-panel);
+    --home-inset: var(--bg-inset);
+    --home-border: var(--border);
+    --home-border-strong: var(--border-strong);
+    --home-mono: var(--font-mono);
+
+    background: var(--home-bg);
+    color: var(--home-text);
+    overflow: clip;
+  }
+
+  .home-page .container {
+    width: min(
+      calc(100% - var(--page-gutter, 1.25rem) * 2),
+      1280px
+    );
+    margin-inline: auto;
+  }
+
+  .home-page a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .home-page button {
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .home-page a:focus-visible,
+  .home-page button:focus-visible {
+    outline: 2px solid var(--blue-bright);
+    outline-offset: 4px;
+  }
+
+  .accent-green {
+    color: var(--home-green);
+  }
+
+  .accent-blue {
+    color: var(--home-blue);
+  }
+
+  .signal-square {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    flex: 0 0 auto;
+    background: var(--home-green);
+  }
+
+  /* ---------------------------------------
+     HERO
+  --------------------------------------- */
+
+  .hero {
+    position: relative;
+    padding: clamp(4.5rem, 8vw, 8rem) 0 5rem;
+    border-bottom: 1px solid var(--home-border);
+  }
+
+  .hero-layout {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1.05fr)
+      minmax(0, 0.95fr);
+    align-items: center;
+    gap: clamp(2.5rem, 5vw, 6rem);
+  }
+
+  .hero-copy,
+  .hero-visual {
+    min-width: 0;
+  }
+
+  .hero-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 2.5rem;
+    color: var(--home-dim);
+    font-family: var(--home-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.07em;
+  }
+
+  .hero-path {
+    margin: 0 0 1.25rem;
+    color: var(--home-muted);
+    font-family: var(--home-mono);
+    font-size: 0.8rem;
+  }
+
+  .hero-path > span:first-child {
+    color: var(--home-green);
+  }
+
+  .cursor-block {
+    display: inline-block;
+    width: 7px;
+    height: 14px;
+    margin-left: 4px;
+    background: var(--home-green);
+    vertical-align: -2px;
+    animation: cursor-blink 1.1s steps(1, end) infinite;
+  }
+
+  .hero h1 {
+    margin: 0 0 2rem;
+    font-family: var(--home-mono);
+    font-size: clamp(3.5rem, 7.3vw, 7.5rem);
+    font-weight: 700;
+    letter-spacing: -0.09em;
+    line-height: 0.98;
+  }
+
+  .hero-lead {
+    margin: 0 0 1.5rem;
+    font-size: clamp(1.2rem, 2vw, 1.65rem);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1.45;
+  }
+
+  .hero-description {
+    max-width: 530px;
+    margin: 0 0 2rem;
+    color: var(--home-muted);
+    font-size: 0.95rem;
+    line-height: 1.8;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+  }
+
+  .home-button {
+    display: inline-flex;
+    min-height: 46px;
+    max-width: 100%;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1.15rem;
+    border: 1px solid var(--home-green);
+    background: var(--home-green);
+    color: var(--home-inset) !important;
+    font-family: var(--home-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.035em;
+    text-align: center;
+    transition:
+      background var(--transition-fast),
+      border-color var(--transition-fast),
+      color var(--transition-fast);
+  }
+
+  .home-button:hover {
+    background: var(--green-bright);
+    border-color: var(--green-bright);
+  }
+
+  .home-button.secondary {
+    background: transparent;
+    border-color: var(--home-border-strong);
+    color: var(--home-text) !important;
+  }
+
+  .home-button.secondary:hover {
+    background: var(--home-panel);
+    border-color: var(--home-green);
+    color: var(--green-bright) !important;
+  }
+
+  .palette-shortcut {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin-top: 1.75rem;
+    padding: 0.75rem 0;
+    border: 0;
+    background: transparent;
+    color: var(--home-muted);
+    font-family: var(--home-mono) !important;
+    font-size: 0.68rem !important;
+    letter-spacing: 0.04em;
+    text-align: left;
+  }
+
+  .palette-shortcut:hover {
+    color: var(--home-green);
+  }
+
+  .shortcut-icon {
+    display: grid;
+    width: 25px;
+    height: 25px;
+    place-items: center;
+    border: 1px solid var(--home-border-strong);
+    color: var(--home-green);
+    font-size: 1rem;
+  }
+
+  .palette-shortcut kbd {
+    padding: 0.3rem 0.45rem;
+    border: 1px solid var(--home-border);
+    color: var(--home-dim);
+    font: inherit;
+    font-size: 0.6rem;
+  }
+
+  .hero-bottom-line {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 3rem;
+    color: var(--home-dim);
+    font-family: var(--home-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+  }
+
+  .short-line {
+    width: 45px;
+    height: 1px;
+    background: var(--home-border-strong);
+  }
+
+  .hero-edge-label {
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+    color: var(--home-dim);
+    font-family: var(--home-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+  }
+
+  /* ---------------------------------------
+     SIGNAL FIELD
+  --------------------------------------- */
+
+  .hero-visual,
+  .console-shell,
+  .orbit-module,
+  .network-panel,
+  .network-inspector,
+  .notes-terminal {
+    border: 1px solid var(--home-border-strong);
+    background: var(--home-inset);
+  }
+
+  .panel-bar,
+  .console-toolbar,
+  .console-status,
+  .network-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    color: var(--home-dim);
+    font-family: var(--home-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.05em;
+  }
+
+  .panel-bar,
+  .console-toolbar {
+    border-bottom: 1px solid var(--home-border);
+  }
+
+  .panel-bar-bottom,
+  .console-status,
+  .network-footer {
+    border-top: 1px solid var(--home-border);
+  }
+
+  .panel-active {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--home-green);
+  }
+
+  .pixel-field {
+    position: relative;
+    height: clamp(350px, 35vw, 480px);
+    overflow: hidden;
+    background:
+      linear-gradient(
+        90deg,
+        transparent calc(50% - 0.5px),
+        rgba(145, 213, 165, 0.07) 50%,
+        transparent calc(50% + 0.5px)
+      ),
+      linear-gradient(
+        0deg,
+        transparent calc(50% - 0.5px),
+        rgba(145, 213, 165, 0.07) 50%,
+        transparent calc(50% + 0.5px)
+      ),
+      var(--home-inset);
+    cursor: crosshair;
+  }
+
+  #pixel-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .field-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .field-emblem {
+    position: relative;
+    display: flex;
+    width: 150px;
+    height: 150px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    border: 1px solid var(--home-border-strong);
+    background: rgba(8, 14, 12, 0.88);
+    box-shadow: 0 0 0 12px rgba(8, 14, 12, 0.5);
+    font-family: var(--home-mono);
+    font-size: 4rem;
+    font-weight: 700;
+    letter-spacing: -0.15em;
+  }
+
+  .field-emblem::before,
+  .field-emblem::after {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    content: "";
+  }
+
+  .field-emblem::before {
+    top: -1px;
+    left: -1px;
+    border-top: 3px solid var(--home-green);
+    border-left: 3px solid var(--home-green);
+  }
+
+  .field-emblem::after {
+    right: -1px;
+    bottom: -1px;
+    border-right: 3px solid var(--home-blue);
+    border-bottom: 3px solid var(--home-blue);
+  }
+
+  .field-emblem span:first-child {
+    color: var(--home-green);
+  }
+
+  .field-emblem span:last-child {
+    color: var(--home-blue);
+  }
+
+  .field-axis {
+    width: 1px;
+    height: 35px;
+    margin: 25px 0;
+    background: var(--home-border-strong);
+  }
+
+  .field-coordinate {
+    position: absolute;
+    color: var(--home-dim);
+    font-family: var(--home-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
+    pointer-events: none;
+  }
+
+  .field-coordinate-top {
+    top: 1rem;
+    left: 1rem;
+  }
+
+  .field-coordinate-bottom {
+    right: 1rem;
+    bottom: 1rem;
+  }
+
+  /* ---------------------------------------
+     FUNCTIONAL SIGNAL SCANNER
+  --------------------------------------- */
+
+  .notes-layout { grid-template-columns: minmax(0, 1fr); }
+  .pixel-field { cursor: default; }
+  #pixel-canvas { pointer-events: none; }
+  .scanner-beacon {
+    position: absolute;
+    z-index: 2;
+    left: var(--signal-x);
+    top: var(--signal-y);
+    transform: translate(-50%, -50%);
+    display: grid;
+    justify-items: center;
+    gap: 0.3rem;
+    min-width: 88px;
+    padding: 0.55rem 0.35rem;
+    border: 1px solid rgba(145, 213, 165, 0.32);
+    background: rgba(8, 18, 17, 0.92);
+    color: var(--home-text);
+    font-family: var(--home-mono) !important;
+    transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+  }
+  .scanner-beacon:hover,
+  .scanner-beacon.is-active {
+    border-color: var(--home-green);
+    background: rgba(22, 43, 35, 0.97);
+    box-shadow: 0 0 0 3px rgba(145, 213, 165, 0.08);
+  }
+  .scanner-beacon-icon {
+    color: var(--home-green);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+  }
+  .scanner-beacon-label {
+    font-size: 0.56rem;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .scanner-readout {
+    min-height: 218px;
+    padding: 1.1rem 1.25rem 1.3rem;
+    border-top: 1px solid var(--home-border);
+  }
+  .scanner-readout-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    color: var(--home-green);
+    font: 0.63rem var(--home-mono);
+    letter-spacing: 0.08em;
+  }
+  .scanner-readout h2 {
+    margin: 0.9rem 0 0.45rem;
+    font-size: 1.2rem;
+    line-height: 1.3;
+  }
+  .scanner-readout p {
+    margin: 0;
+    color: var(--home-muted);
+    font-size: 0.82rem;
+    line-height: 1.65;
+  }
+  .scanner-readout-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-top: 0.95rem;
+    color: var(--home-green) !important;
+    font: 700 0.69rem var(--home-mono);
+    letter-spacing: 0.04em;
+  }
+  .scanner-readout-link:hover,
+  .scanner-related a:hover { text-decoration: underline; }
+  .scanner-related {
+    display: grid;
+    gap: 0.4rem;
+    margin-top: 1rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--home-border);
+    font: 0.65rem var(--home-mono);
+  }
+  .scanner-related[hidden] { display: none; }
+  .scanner-related > span { color: var(--home-dim); }
+  .scanner-related a { color: var(--home-blue) !important; }
+  @media (max-width: 600px) {
+    .scanner-beacon { min-width: 70px; padding: 0.5rem 0.25rem; }
+    .scanner-beacon-label { font-size: 0.5rem; }
+    .scanner-readout { min-height: 0; }
+  }
+
+  /* ---------------------------------------
+     INTRO STRIP
+  --------------------------------------- */
+
+  .intro-strip {
+    border-bottom: 1px solid var(--home-border);
+    background: var(--home-raised);
+  }
+
+  .intro-strip-inner {
+    display: flex;
+    min-height: 88px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    font-family: var(--home-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+  }
+
+  .intro-strip-inner b {
+    margin-right: 0.6rem;
+    color: var(--home-green);
+    font-size: 0.65rem;
+  }
+
+  .strip-plus {
+    color: var(--home-border-strong);
+    font-size: 1.5rem;
+  }
+
+  /* ---------------------------------------
+     SHARED SECTIONS
+  --------------------------------------- */
+
+  .home-section {
+    padding: clamp(4.5rem, 8vw, 8rem) 0;
+    border-bottom: 1px solid var(--home-border);
+  }
+
+  .section-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .section-eyebrow,
+  .section-code {
+    font-family: var(--home-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+  }
+
+  .section-eyebrow {
+    color: var(--home-green);
+  }
+
+  .section-eyebrow.blue {
+    color: var(--home-blue);
+  }
+
+  .section-code {
+    color: var(--home-dim);
+  }
+
+  .section-intro {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 0.65fr);
+    align-items: end;
+    gap: 3rem;
+    margin-bottom: 3rem;
+  }
+
+  .section-intro h2,
+  .notes-copy h2 {
+    margin: 0;
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    letter-spacing: -0.06em;
+    line-height: 1.1;
+    overflow-wrap: break-word;
+  }
+
+  .section-intro p,
+  .notes-copy > p {
+    margin: 0;
+    color: var(--home-muted);
+    font-size: 0.95rem;
+    line-height: 1.8;
+  }
+
+  .section-end {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .section-end-line {
+    height: 1px;
+    flex: 1;
+    background: var(--home-border);
+  }
+
+  .home-inline-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--home-green);
+    color: var(--home-green) !important;
+    font-family: var(--home-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  .home-inline-link:hover {
+    color: var(--green-bright) !important;
+  }
+
+  /* ---------------------------------------
+     SYSTEM CONSOLE
+  --------------------------------------- */
+
+  .console-section {
+    background:
+      radial-gradient(
+        ellipse at 90% 0%,
+        rgba(145, 213, 165, 0.045),
+        transparent 45%
+      ),
+      var(--home-bg);
+  }
+
+  .console-shell {
+    box-shadow: 12px 12px 0 rgba(145, 213, 165, 0.025);
+  }
+
+  .console-toolbar {
+    justify-content: flex-start;
+    background: var(--home-panel);
+  }
+
+  .console-toolbar > span:last-child {
+    margin-left: auto;
+  }
+
+  .window-dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .window-dots span {
+    width: 7px;
+    height: 7px;
+    border: 1px solid var(--home-border-strong);
+  }
+
+  .window-dots span:first-child {
+    background: var(--home-green);
+    border-color: var(--home-green);
+  }
+
+  .window-dots span:nth-child(2) {
+    background: var(--home-blue);
+    border-color: var(--home-blue);
+  }
+
+  .console-layout {
+    display: grid;
+    grid-template-columns: 230px minmax(0, 1fr);
+    min-height: 340px;
+  }
+
+  .console-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1.4rem 0.75rem;
+    border-right: 1px solid var(--home-border);
+    background: var(--home-panel);
+  }
+
+  .console-sidebar-label {
+    margin: 0 0 1rem;
+    padding-inline: 0.75rem;
+    color: var(--home-dim);
+    font-family: var(--home-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+  }
+
+  .console-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    width: 100%;
+    padding: 0.9rem 0.75rem;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--home-muted);
+    font-family: var(--home-mono) !important;
+    font-size: 0.72rem !important;
+    text-align: left;
+  }
+
+  .console-tab span {
+    color: var(--home-dim);
+  }
+
+  .console-tab:hover,
+  .console-tab.is-active {
+    border-color: var(--home-border-strong);
+    background: var(--home-inset);
+    color: var(--home-green);
+  }
+
+  .console-tab.is-active span {
+    color: var(--home-green);
+  }
+
+  .console-screen {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    padding: clamp(1.25rem, 3vw, 2.5rem);
+  }
+
+  .console-command-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1.75rem;
+    font-family: var(--home-mono);
+    font-size: 0.78rem;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+  }
+
+  .terminal-prompt {
+    color: var(--home-green);
+  }
+
+  .console-path {
+    color: var(--home-blue);
+  }
+
+  .console-output {
+    display: grid;
+    gap: 0.7rem;
+    min-height: 110px;
+    align-content: start;
+  }
+
+  .console-file {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    color: var(--home-text);
+    font-family: var(--home-mono);
+    font-size: 0.78rem;
+    overflow-wrap: anywhere;
+  }
+
+  .console-file span {
+    color: var(--home-green);
+  }
+
+  .console-detail {
+    margin-top: 1.5rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--home-border);
+  }
+
+  .terminal-comment {
+    color: var(--home-blue);
+    font-family: var(--home-mono);
+    font-size: 0.68rem;
+  }
+
+  .console-detail p {
+    max-width: 680px;
+    margin: 0.7rem 0 0;
+    color: var(--home-muted);
+    font-size: 0.86rem;
+    line-height: 1.75;
+  }
+
+  .console-open-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    align-self: flex-start;
+    margin-top: 1.75rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid var(--home-green);
+    color: var(--home-green) !important;
+    font-family: var(--home-mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  .console-status {
+    background: var(--home-panel);
+  }
+
+  /* ---------------------------------------
+     LEARNING CARDS
+  --------------------------------------- */
+
+  .learning-section {
+    background: var(--home-raised);
+  }
+
+  .learning-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .learning-entry {
+    display: flex;
+    min-width: 0;
+    min-height: 350px;
+    flex-direction: column;
+    border: 1px solid var(--home-border);
+    background: var(--home-panel);
+    transition:
+      border-color var(--transition-fast),
+      transform var(--transition-fast);
+  }
+
+  .learning-entry:hover {
+    border-color: var(--home-green);
+    transform: translateY(-4px);
+  }
+
+  .learning-entry-top {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    padding: 1.15rem;
+    border-bottom: 1px solid var(--home-border);
+    color: var(--home-dim);
+    font-family: var(--home-mono);
+    font-size: 0.59rem;
+    line-height: 1.6;
+  }
+
+  .entry-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--home-green);
+  }
+
+  .entry-status .signal-square {
+    width: 5px;
+    height: 5px;
+  }
+
+  .learning-entry-body {
+    flex: 1;
+    padding: 1.7rem 1.15rem;
+  }
+
+  .entry-provider {
+    color: var(--home-blue);
+    font-family: var(--home-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+  }
+
+  .learning-entry h3 {
+    margin: 0.85rem 0 1rem;
+    font-size: clamp(1.25rem, 1.8vw, 1.65rem);
+    letter-spacing: -0.04em;
+    line-height: 1.25;
+  }
+
+  .learning-entry p {
+    margin: 0;
+    color: var(--home-muted);
+    font-size: 0.84rem;
+    line-height: 1.8;
+  }
+
+  .entry-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.15rem;
+    border-top: 1px solid var(--home-border);
+    color: var(--home-green);
+    font-family: var(--home-mono);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+
+  /* ---------------------------------------
+     ORBITAL FEATURE
+  --------------------------------------- */
+
+  .orbital-section {
+    background:
+      radial-gradient(
+        ellipse at 75% 45%,
+        rgba(120, 183, 194, 0.055),
+        transparent 55%
+      ),
+      var(--home-bg);
+  }
+
+  .orbital-layout {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 0.85fr)
+      minmax(0, 1.15fr);
+    align-items: center;
+    gap: clamp(2rem, 5vw, 5rem);
+  }
+
+  .orbital-copy {
+    min-width: 0;
+  }
+
+  .featured-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--home-blue);
+    font-family: var(--home-mono);
+    font-size: 0.63rem;
+    letter-spacing: 0.04em;
+  }
+
+  .orbital-copy h2 {
+    margin: 0 0 1.5rem;
+    font-size: clamp(2.6rem, 4.5vw, 5rem);
+    letter-spacing: -0.06em;
+    line-height: 1.1;
+  }
+
+  .orbital-copy h2 span {
+    display: block;
+  }
+
+  .orbital-description {
+    max-width: 570px;
+    margin: 0 0 2rem;
+    color: var(--home-muted);
+    font-size: 0.95rem;
+    line-height: 1.85;
+  }
+
+  .orbital-metric {
+    display: grid;
+    gap: 0.45rem;
+    margin-bottom: 2rem;
+    padding: 1.25rem;
+    border-left: 2px solid var(--home-blue);
+    background: var(--home-panel);
+  }
+
+  .orbital-metric span,
+  .orbital-metric small {
+    color: var(--home-muted);
+    font-family: var(--home-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.06em;
+  }
+
+  .orbital-metric strong {
+    color: var(--home-blue);
+    font-family: var(--home-mono);
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .orbit-stage {
+    position: relative;
+    overflow: hidden;
+    background: #091110;
+  }
+
+  .orbit-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .orbit-grid-svg line {
+    stroke: #25433f;
+    stroke-opacity: 0.35;
+    stroke-width: 0.5;
+  }
+
+  .orbit-axis {
+    stroke: #638c85;
+    stroke-opacity: 0.3;
+    stroke-width: 0.7;
+  }
+
+  .orbit-outer-guide {
+    fill: none;
+    stroke: #466a64;
+    stroke-opacity: 0.45;
+    stroke-width: 0.7;
+    stroke-dasharray: 2 7;
+  }
+
+  .orbit-svg-label {
+    fill: #7b9c95;
+    font-family: monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+
+  .orbit-track {
+    transform-origin: 250px 200px;
+    animation: orbit-rotation 18s linear infinite;
+  }
+
+  .orbit-controls {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-top: 1px solid var(--home-border);
+    border-bottom: 1px solid var(--home-border);
+  }
+
+  .orbit-mode {
+    min-width: 0;
+    padding: 1rem 0.55rem;
+    border: 0;
+    border-right: 1px solid var(--home-border);
+    background: var(--home-panel);
+    color: var(--home-muted);
+    font-family: var(--home-mono) !important;
+    font-size: 0.62rem !important;
+    letter-spacing: 0.03em;
+  }
+
+  .orbit-mode:last-child {
+    border-right: 0;
+  }
+
+  .orbit-mode:hover,
+  .orbit-mode.is-active {
+    background: var(--home-raised);
+    color: var(--home-green);
+  }
+
+  .orbit-mode.is-active {
+    box-shadow: inset 0 -2px var(--home-green);
+  }
+
+  .orbit-readout {
+    display: grid;
+    gap: 0.65rem;
+    min-height: 185px;
+    align-content: start;
+    padding: 1.5rem;
+  }
+
+  .orbit-readout > span {
+    color: var(--home-muted);
+    font-family: var(--home-mono);
+    font-size: 0.7rem;
+  }
+
+  .orbit-readout strong {
+    color: var(--home-blue);
+    font-family: var(--home-mono);
+    font-size: clamp(1.25rem, 2.5vw, 1.9rem);
+    overflow-wrap: anywhere;
+  }
+
+  .orbit-readout p {
+    max-width: 600px;
+    margin: 0;
+    color: var(--home-muted);
+    font-size: 0.84rem;
+    line-height: 1.7;
+  }
+
+  .orbit-disclaimer {
+    padding: 0.85rem 1rem;
+    border-top: 1px solid var(--home-border);
+    color: var(--home-dim);
+    font-family: var(--home-mono);
+    font-size: 0.57rem;
+    letter-spacing: 0.04em;
+    line-height: 1.7;
+  }
+
+  /* ---------------------------------------
+     INVESTIGATION NETWORK
+  --------------------------------------- */
+
+  .network-section {
+    background: var(--home-raised);
+  }
+
+  .network-layout {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1.5fr)
+      minmax(280px, 0.75fr);
+    gap: 1rem;
+  }
+
+  .network-panel,
+  .network-inspector {
+    min-width: 0;
+  }
+
+  .network-canvas {
+    position: relative;
+    min-height: 440px;
+    overflow: hidden;
+    background:
+      radial-gradient(
+        circle at center,
+        rgba(145, 213, 165, 0.045),
+        transparent 55%
+      ),
+      linear-gradient(
+        rgba(145, 213, 165, 0.025) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        90deg,
+        rgba(145, 213, 165, 0.025) 1px,
+        transparent 1px
+      ),
+      var(--home-inset);
+    background-size: auto, 30px 30px, 30px 30px, auto;
+  }
+
+  .network-lines {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .network-lines line {
+    stroke: #6e9f9a;
+    stroke-opacity: 0.35;
+    stroke-width: 0.3;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .network-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: grid;
+    gap: 0.25rem;
+    place-items: center;
+    width: 94px;
+    height: 94px;
+    border: 1px solid var(--home-border-strong);
+    background: rgba(8, 14, 12, 0.92);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .network-center span {
+    color: var(--home-green);
+    font-family: var(--home-mono);
+    font-size: 1.8rem;
+    font-weight: 700;
+  }
+
+  .network-center small {
+    color: var(--home-dim);
+    font-family: var(--home-mono);
+    font-size: 0.48rem;
+    letter-spacing: 0.04em;
+  }
+
+  .network-node {
+    position: absolute;
+    top: var(--node-y);
+    left: var(--node-x);
+    display: flex;
+    width: 58px;
+    height: 58px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    border: 1px solid var(--home-border-strong);
+    background: #111c1a;
+    color: var(--home-blue);
+    transform: translate(-50%, -50%);
+    transition:
+      border-color var(--transition-fast),
+      background var(--transition-fast),
+      box-shadow var(--transition-fast);
+  }
+
+  .network-node:hover,
+  .network-node.is-active {
+    border-color: var(--home-green);
+    background: #1a3027;
+    color: var(--home-green);
+    box-shadow: 0 0 20px rgba(145, 213, 165, 0.1);
+  }
+
+  .node-symbol {
+    font-family: var(--home-mono);
+    font-size: 0.83rem;
+    font-weight: 700;
+  }
+
+  .node-number {
+    color: var(--home-dim);
+    font-family: var(--home-mono);
+    font-size: 0.55rem;
+  }
+
+  .network-inspector {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .inspector-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--home-border);
+    color: var(--home-dim);
+    font-family: var(--home-mono);
+    font-size: 0.62rem;
+  }
+
+  .inspector-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: clamp(1.5rem, 3vw, 2.25rem);
+  }
+
+  .inspector-category {
+    color: var(--home-blue);
+    font-family: var(--home-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+  }
+
+  .inspector-content h3 {
+    margin: 1rem 0;
+    font-size: clamp(1.6rem, 2.5vw, 2.5rem);
+    letter-spacing: -0.05em;
+    line-height: 1.2;
+  }
+
+  .inspector-content p {
+    margin: 0 0 2rem;
+    color: var(--home-muted);
+    font-size: 0.9rem;
+    line-height: 1.8;
+  }
+
+  .inspector-status {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: auto;
+    padding: 1rem 0;
+    border-top: 1px solid var(--home-border);
+    font-family: var(--home-mono);
+  }
+
+  .inspector-status span {
+    color: var(--home-dim);
+    font-size: 0.6rem;
+  }
+
+  .inspector-status strong {
+    color: var(--home-green);
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+
+  .inspector-link {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--home-green);
+    color: var(--home-green) !important;
+    font-family: var(--home-mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  .inspector-link[hidden] {
+    display: none;
+  }
+
+  .inspector-bottom {
+    padding: 1rem;
+    border-top: 1px solid var(--home-border);
+    color: var(--home-dim);
+    font-family: var(--home-mono);
+    font-size: 0.58rem;
+    line-height: 1.7;
+  }
+
+  .research-topic-index {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin-top: 1rem;
+  }
+
+  .topic-button {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-height: 46px;
+    padding: 0.75rem;
+    border: 1px solid var(--home-border);
+    background: var(--home-panel);
+    color: var(--home-muted);
+    font-family: var(--home-mono) !important;
+    font-size: 0.68rem !important;
+    text-align: left;
+  }
+
+  .topic-button span {
+    color: var(--home-blue);
+  }
+
+  .topic-button:hover,
+  .topic-button.is-active {
+    border-color: var(--home-green);
+    color: var(--home-text);
+  }
+
+  /* ---------------------------------------
+     FIELD NOTES
+  --------------------------------------- */
+
+  .notes-layout {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 0.9fr);
+    align-items: center;
+    gap: clamp(2rem, 6vw, 7rem);
+  }
+
+  .notes-copy h2 {
+    margin-bottom: 1.5rem;
+  }
+
+  .notes-feature {
+    display: grid;
+    gap: 0.85rem;
+    margin: 2rem 0;
+    padding: 1.3rem 0;
+    border-top: 1px solid var(--home-border);
+    border-bottom: 1px solid var(--home-border);
+  }
+
+  .notes-feature > span,
+  .notes-feature small {
+    color: var(--home-muted);
+    font-family: var(--home-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+  }
+
+  .notes-feature a {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 1rem;
+    color: var(--home-text);
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  .notes-feature a:hover {
+    color: var(--home-green);
+  }
+
+  .notes-feature a span {
+    color: var(--home-green);
+  }
+
+  .notes-terminal-body {
+    min-height: 320px;
+    padding: clamp(1.25rem, 3vw, 2.25rem);
+    font-family: var(--home-mono);
+    font-size: 0.78rem;
+    line-height: 1.9;
+  }
+
+  .notes-terminal-body > p {
+    margin: 0 0 0.6rem;
+  }
+
+  .notes-terminal-body > p span {
+    margin-right: 0.5rem;
+    color: var(--home-green);
+  }
+
+  .terminal-lines {
+    margin-bottom: 1.5rem;
+    padding-left: 1rem;
+    color: var(--home-muted);
+  }
+
+  .terminal-lines p {
+    margin: 0;
+  }
+
+  /* ---------------------------------------
+     CLOSING
+  --------------------------------------- */
+
+  .closing-section {
+    padding: clamp(5rem, 9vw, 9rem) 0;
+    text-align: center;
+    background:
+      radial-gradient(
+        ellipse at center,
+        rgba(145, 213, 165, 0.045),
+        transparent 60%
+      ),
+      var(--home-bg);
+  }
+
+  .closing-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .closing-inner h2 {
+    margin: 1.5rem 0;
+    font-size: clamp(3rem, 8vw, 8rem);
+    letter-spacing: -0.075em;
+    line-height: 1.05;
+  }
+
+  .closing-inner > p {
+    margin: 0 0 2rem;
+    color: var(--home-muted);
+    font-size: 1rem;
+    line-height: 1.8;
+  }
+
+  .closing-decoration {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 4rem;
+  }
+
+  .closing-decoration span {
+    width: 8px;
+    height: 8px;
+    background: var(--home-green);
+    opacity: 0.45;
+  }
+
+  .closing-decoration span.blue {
+    background: var(--home-blue);
+  }
+
+  /* ---------------------------------------
+     COMMAND PALETTE
+  --------------------------------------- */
+
+  .command-palette {
+    width: min(620px, calc(100% - 2rem));
+    max-height: min(75vh, 650px);
+    margin: min(15vh, 140px) auto auto;
+    padding: 0;
+    border: 1px solid var(--border-strong);
+    border-radius: 0;
+    background: var(--bg-inset);
+    color: var(--text);
+    box-shadow: 0 24px 90px rgba(0, 0, 0, 0.65);
+    overflow: hidden;
+  }
+
+  .command-palette::backdrop {
+    background: rgba(0, 0, 0, 0.78);
+    backdrop-filter: blur(5px);
+  }
+
+  .palette-shell {
+    display: flex;
+    flex-direction: column;
+    max-height: min(75vh, 650px);
+  }
+
+  .palette-heading,
+  .palette-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+  }
+
+  .palette-heading {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .palette-close {
+    padding: 0.3rem 0.5rem;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    cursor: pointer;
+  }
+
+  .palette-close:hover {
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .palette-search {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1.2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .palette-search > span {
+    color: var(--green);
+    font-size: 1.5rem;
+  }
+
+  .palette-search input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+  }
+
+  .palette-search input::placeholder {
+    color: var(--text-dim);
+  }
+
+  .palette-results {
+    min-height: 90px;
+    overflow-y: auto;
+    padding: 0.5rem;
+  }
+
+  .palette-result {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.95rem;
+    border: 1px solid transparent;
+    color: var(--text);
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  .palette-result:hover,
+  .palette-result.is-selected {
+    border-color: var(--border-strong);
+    background: var(--bg-panel);
+  }
+
+  .palette-result[hidden] {
+    display: none;
+  }
+
+  .palette-result-name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .palette-result-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex: 0 0 auto;
+    color: var(--blue);
+    font-size: 0.6rem;
+  }
+
+  .palette-empty {
+    margin: 0;
+    padding: 1.5rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-align: center;
+  }
+
+  .palette-empty[hidden] {
+    display: none;
+  }
+
+  .palette-footer {
+    justify-content: flex-start;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ---------------------------------------
+     ANIMATION
+  --------------------------------------- */
+
+  @keyframes cursor-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes orbit-rotation {
+    from {
+      transform: rotate(-27deg);
+    }
+
+    to {
+      transform: rotate(333deg);
+    }
+  }
+
+  /* ---------------------------------------
+     RESPONSIVE
+  --------------------------------------- */
+
+  @media (max-width: 1100px) {
+    .hero-layout {
+      gap: 2.5rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(3.2rem, 7vw, 6rem);
+    }
+
+    .learning-grid {
+      gap: 0.75rem;
+    }
+
+    .learning-entry-top {
+      flex-direction: column;
+    }
+
+    .orbital-layout {
+      gap: 2rem;
+    }
+
+    .network-layout {
+      grid-template-columns:
+        minmax(0, 1.2fr)
+        minmax(260px, 0.8fr);
+    }
+  }
+
+  @media (max-width: 850px) {
+    .hero-layout,
+    .orbital-layout,
+    .notes-layout,
+    .section-intro,
+    .network-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .hero h1 {
+      font-size: clamp(4rem, 11vw, 7rem);
+    }
+
+    .hero-visual {
+      max-width: 650px;
+    }
+
+    .section-intro {
+      gap: 1.25rem;
+    }
+
+    .learning-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .orbital-copy {
+      max-width: 700px;
+    }
+
+    .orbit-module {
+      max-width: 720px;
+    }
+
+    .network-inspector {
+      min-height: 280px;
+    }
+
+    .network-canvas {
+      min-height: 460px;
+    }
+
+    .research-topic-index {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .notes-terminal {
+      max-width: 650px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .hero {
+      padding: 3.5rem 0 4rem;
+    }
+
+    .hero-meta {
+      margin-bottom: 2rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(3rem, 13vw, 5rem);
+    }
+
+    .hero-actions {
+      flex-direction: column;
+    }
+
+    .hero-actions .home-button {
+      width: 100%;
+    }
+
+    .hero-bottom-line {
+      margin-top: 2rem;
+    }
+
+    .hero-edge-label {
+      display: none;
+    }
+
+    .pixel-field {
+      height: 330px;
+    }
+
+    .field-emblem {
+      width: 115px;
+      height: 115px;
+      font-size: 3rem;
+    }
+
+    .intro-strip-inner {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding-block: 1.5rem;
+    }
+
+    .strip-plus {
+      display: none;
+    }
+
+    .home-section {
+      padding-block: 4rem;
+    }
+
+    .console-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .console-sidebar {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      padding: 0.75rem;
+      border-right: 0;
+      border-bottom: 1px solid var(--home-border);
+    }
+
+    .console-sidebar-label {
+      width: 100%;
+      margin-bottom: 0.25rem;
+    }
+
+    .console-tab {
+      width: auto;
+      flex: 1 1 auto;
+      justify-content: center;
+      padding: 0.75rem 0.5rem;
+      font-size: 0.62rem !important;
+    }
+
+    .console-screen {
+      min-height: 300px;
+    }
+
+    .console-status,
+    .network-footer {
+      flex-wrap: wrap;
+    }
+
+    .learning-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .learning-entry {
+      min-height: 300px;
+    }
+
+    .learning-entry-top {
+      flex-direction: row;
+    }
+
+    .orbit-controls {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .orbit-mode {
+      border-right: 0;
+      border-bottom: 1px solid var(--home-border);
+    }
+
+    .orbit-mode:last-child {
+      border-bottom: 0;
+    }
+
+    .orbit-readout {
+      min-height: 0;
+    }
+
+    .network-canvas {
+      min-height: 340px;
+    }
+
+    .network-node {
+      width: 43px;
+      height: 43px;
+    }
+
+    .node-symbol {
+      font-size: 0.7rem;
+    }
+
+    .node-number {
+      font-size: 0.48rem;
+    }
+
+    .network-center {
+      width: 70px;
+      height: 70px;
+    }
+
+    .network-center span {
+      font-size: 1.35rem;
+    }
+
+    .network-center small {
+      font-size: 0.4rem;
+    }
+
+    .research-topic-index {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .topic-button {
+      min-height: 44px;
+    }
+
+    .section-end {
+      gap: 0.75rem;
+    }
+
+    .home-inline-link {
+      font-size: 0.65rem;
+    }
+
+    .palette-shortcut kbd {
+      display: none;
+    }
+
+    .palette-result {
+      align-items: flex-start;
+      font-size: 0.68rem;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .hero h1 {
+      font-size: 12.5vw;
+    }
+
+    .hero-meta {
+      font-size: 0.57rem;
+    }
+
+    .pixel-field {
+      height: 285px;
+    }
+
+    .network-canvas {
+      min-height: 290px;
+    }
+
+    .network-node {
+      width: 36px;
+      height: 36px;
+    }
+
+    .node-symbol {
+      font-size: 0.6rem;
+    }
+
+    .node-number {
+      display: none;
+    }
+
+    .network-center {
+      width: 55px;
+      height: 55px;
+    }
+
+    .network-center span {
+      font-size: 1.1rem;
+    }
+
+    .network-center small {
+      display: none;
+    }
+
+    .console-tab {
+      font-size: 0.56rem !important;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .home-page *,
+    .home-page *::before,
+    .home-page *::after,
+    .command-palette *,
+    .command-palette *::before,
+    .command-palette *::after {
+      animation: none !important;
+      transition: none !important;
+      scroll-behavior: auto !important;
+    }
+  }
+</style>

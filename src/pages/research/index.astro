@@ -1,0 +1,1838 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+const publishedResearch = (await getCollection("research"))
+  .filter((entry) => !entry.data.draft)
+  .sort(
+    (a, b) =>
+      b.data.publishedAt.getTime() -
+      a.data.publishedAt.getTime()
+  );
+const publishedCount = publishedResearch.length;
+const completedCount = publishedResearch.filter(
+  (entry) => entry.data.status === "completed"
+).length;
+const activeCount = publishedResearch.filter(
+  (entry) => entry.data.status === "in-progress"
+).length;
+const featuredResearch = publishedResearch.filter(
+  (entry) => entry.data.featured
+);
+const researchAreas = [
+  {
+    id: "satellite-security",
+    number: "01",
+    title: "Satellite Security",
+    label: "SPACE SYSTEMS",
+    symbol: "SAT",
+    description:
+      "Orbital data, spacecraft architecture, communications, ground systems and security analysis.",
+  },
+  {
+    id: "drone-security",
+    number: "02",
+    title: "Drone Forensics",
+    label: "UNCREWED SYSTEMS",
+    symbol: "UAV",
+    description:
+      "Flight records, navigation artefacts, controllers, firmware and digital evidence.",
+  },
+  {
+    id: "mobile-forensics",
+    number: "03",
+    title: "Mobile Forensics",
+    label: "MOBILE SYSTEMS",
+    symbol: "MOB",
+    description:
+      "Mobile operating systems, application artefacts, acquisition methods and timelines.",
+  },
+  {
+    id: "iot-security",
+    number: "04",
+    title: "IoT Forensics",
+    label: "EMBEDDED SYSTEMS",
+    symbol: "IOT",
+    description:
+      "Connected devices, embedded firmware, storage artefacts and network activity.",
+  },
+  {
+    id: "vehicle-security",
+    number: "05",
+    title: "Vehicle Security",
+    label: "AUTOMOTIVE",
+    symbol: "CAN",
+    description:
+      "Automotive networks, CAN bus, electronic control units and vehicle investigations.",
+  },
+  {
+    id: "ethical-hacking",
+    number: "06",
+    title: "Ethical Hacking",
+    label: "OFFENSIVE SECURITY",
+    symbol: "SEC",
+    description:
+      "Authorised testing, vulnerability research, attack surfaces and defensive lessons.",
+  },
+  {
+    id: "malware-analysis",
+    number: "07",
+    title: "Malware Analysis",
+    label: "REVERSE ENGINEERING",
+    symbol: "HEX",
+    description:
+      "Malicious code, behavioural analysis, reverse engineering and forensic artefacts.",
+  },
+  {
+    id: "network-forensics",
+    number: "08",
+    title: "Incident Response",
+    label: "DEFENSIVE SECURITY",
+    symbol: "IR",
+    description:
+      "Network evidence, event correlation, alert triage and incident investigation.",
+  },
+] as const;
+const categoryLabels: Record<string, string> = {
+  "satellite-security": "Satellite Security",
+  "drone-security": "Drone Forensics",
+  "mobile-forensics": "Mobile Forensics",
+  "iot-security": "IoT Forensics",
+  "vehicle-security": "Vehicle Security",
+  "ethical-hacking": "Ethical Hacking",
+  "malware-analysis": "Malware Analysis",
+  "network-forensics": "Incident Response",
+  other: "Other Research",
+};
+const evidenceLabels: Record<string, string> = {
+  "public-source": "PUBLIC SOURCE",
+  modelled: "MODELLED DATA",
+  simulated: "SIMULATION",
+  "controlled-lab": "CONTROLLED LAB",
+  "evidence-backed": "EVIDENCE BACKED",
+  theoretical: "THEORETICAL",
+  mixed: "MIXED SOURCES",
+};
+const statusLabels: Record<string, string> = {
+  planned: "PLANNED",
+  "in-progress": "IN PROGRESS",
+  completed: "COMPLETED",
+};
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+const categoryCounts: Record<string, number> = {};
+for (const entry of publishedResearch) {
+  categoryCounts[entry.data.category] =
+    (categoryCounts[entry.data.category] ?? 0) + 1;
+}
+const availableFilters = researchAreas.filter(
+  (area) => (categoryCounts[area.id] ?? 0) > 0
+);
+const hasOtherResearch = (categoryCounts.other ?? 0) > 0;
+const basePath = import.meta.env.BASE_URL;
+function withBase(path: string): string {
+  if (!path.startsWith("/") || path.startsWith("//")) return path;
+  const base = basePath.endsWith("/") ? basePath : `${basePath}/`;
+  return `${base}${path.replace(/^\/+/, "")}`;
+}
+
+---
+<BaseLayout
+  title="Research | NULL SECTOR"
+  description="Explore NULL SECTOR's cybersecurity and digital forensics research, with documented methodology, source provenance, evidence classifications and limitations."
+>
+  <main id="main-content" class="research-page">
+<!-- HERO -->
+    <section
+      class="research-hero"
+      aria-labelledby="research-title"
+    >
+      <div class="container">
+        <div class="hero-topline">
+          <span class="eyebrow">
+            [ 02 / RESEARCH ]
+          </span>
+          <span class="system-label">
+            NULL SECTOR / RESEARCH.INDEX
+          </span>
+        </div>
+        <div class="hero-layout">
+          <div class="hero-copy">
+            <p class="hero-command">
+              <span class="prompt">root@nullsector</span>:~$
+              ./research --index
+            </p>
+            <h1 id="research-title">
+              Research<span class="title-dot">.</span>
+            </h1>
+            <p class="hero-lead">
+              Understand the system.
+              <span>Follow the evidence.</span>
+            </p>
+            <p class="hero-description">
+              An archive exploring cybersecurity,
+              digital forensics and the technical systems
+              behind modern infrastructure. Published
+              studies document their methods, evidence
+              basis, interpretations and limitations.
+            </p>
+          </div>
+          <div
+            class="hero-aside"
+            aria-label="Research principles"
+          >
+            <div class="aside-header">
+              <span>RESEARCH.PROTOCOL</span>
+              <span
+                class="aside-symbol"
+                aria-hidden="true"
+              >
+                [+]
+              </span>
+            </div>
+            <div class="protocol-row">
+              <span class="protocol-number">01</span>
+              <div>
+                <strong>OBSERVE</strong>
+                <p>
+                  Establish the source and scope of the data.
+                </p>
+              </div>
+            </div>
+            <div class="protocol-row">
+              <span class="protocol-number">02</span>
+              <div>
+                <strong>ANALYSE</strong>
+                <p>
+                  Apply documented and explainable methods.
+                </p>
+              </div>
+            </div>
+            <div class="protocol-row">
+              <span class="protocol-number">03</span>
+              <div>
+                <strong>VERIFY</strong>
+                <p>
+                  Separate evidence from interpretation.
+                </p>
+              </div>
+            </div>
+            <div class="protocol-row">
+              <span class="protocol-number">04</span>
+              <div>
+                <strong>DOCUMENT</strong>
+                <p>
+                  Record assumptions, limitations and findings.
+                </p>
+              </div>
+            </div>
+            <div class="aside-footer">
+              <span>METHOD / EVIDENCE / CONTEXT</span>
+              <span
+                class="status-light"
+                aria-hidden="true"
+              ></span>
+            </div>
+          </div>
+        </div>
+        <div
+          class="research-stats"
+          aria-label="Research archive statistics"
+        >
+          <div class="stat">
+            <span class="stat-value">
+              {String(publishedCount).padStart(2, "0")}
+            </span>
+            <span class="stat-label">
+              PUBLISHED ENTRIES
+            </span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">
+              {String(completedCount).padStart(2, "0")}
+            </span>
+            <span class="stat-label">
+              COMPLETED STUDIES
+            </span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">
+              {String(activeCount).padStart(2, "0")}
+            </span>
+            <span class="stat-label">
+              ACTIVE PUBLIC STUDIES
+            </span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">
+              {String(researchAreas.length).padStart(2, "0")}
+            </span>
+            <span class="stat-label">
+              AREAS OF INTEREST
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+<!-- RESEARCH DOMAINS -->
+    <section
+      class="section disciplines-section"
+      aria-labelledby="disciplines-title"
+    >
+      <div class="container">
+        <div class="section-topline">
+          <span class="eyebrow">
+            [ RESEARCH DOMAINS ]
+          </span>
+          <span class="section-code">
+            AREAS / 01—08
+          </span>
+        </div>
+        <div class="section-heading">
+          <h2 id="disciplines-title">
+            Areas of
+            <span class="accent-blue">
+              {" "}investigation.
+            </span>
+          </h2>
+          <p>
+            Eight interconnected areas of technical
+            interest. A listed domain does not imply
+            that an investigation has been completed.
+            Published records are counted separately.
+          </p>
+        </div>
+        <div class="disciplines-grid">
+          {
+            researchAreas.map((area) => (
+              <article class="discipline-card">
+                <div class="discipline-top">
+                  <span class="discipline-number">
+                    {area.number}
+                  </span>
+                  <span class="discipline-symbol">
+                    {area.symbol}
+                  </span>
+                </div>
+                <div class="discipline-body">
+                  <span class="discipline-label">
+                    {area.label}
+                  </span>
+                  <h3>{area.title}</h3>
+                  <p>{area.description}</p>
+                </div>
+                <div class="discipline-bottom">
+                  <span>AREA OF INTEREST</span>
+                  <span class="discipline-count">
+                    {String(categoryCounts[area.id] ?? 0).padStart(2, "0")}
+                    {" "}PUBLISHED
+                  </span>
+                </div>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+<!-- RESEARCH ARCHIVE -->
+    <section
+      class="section archive-section"
+      aria-labelledby="archive-title"
+    >
+      <div class="container">
+        <div class="section-topline">
+          <span class="eyebrow eyebrow-blue">
+            [ PUBLIC RESEARCH ARCHIVE ]
+          </span>
+          <span class="section-code">
+            INDEX / PUBLISHED ONLY
+          </span>
+        </div>
+        <div class="section-heading archive-heading">
+          <h2 id="archive-title">
+            Investigation
+            <span class="accent-green">
+              {" "}records.
+            </span>
+          </h2>
+          <p>
+            Published articles distinguish public-source
+            analysis, theoretical discussion, modelling,
+            simulation and practical evidence. Each
+            record should be read alongside its stated
+            scope and limitations.
+          </p>
+        </div>
+        {
+          publishedCount > 0 ? (
+            <>
+              {featuredResearch.length > 0 && (
+                <div class="featured-section">
+                  <div class="subsection-heading">
+                    <span
+                      class="subsection-marker"
+                      aria-hidden="true"
+                    ></span>
+                    <h3>FEATURED RESEARCH</h3>
+                    <span
+                      class="subsection-line"
+                      aria-hidden="true"
+                    ></span>
+                  </div>
+                  <div class="featured-grid">
+                    {featuredResearch.map((entry) => (
+                      <article class="featured-card">
+                        <div class="featured-top">
+                          <span class="featured-label">
+                            FEATURED / RESEARCH
+                          </span>
+                          <span class="featured-status">
+                            {statusLabels[entry.data.status]}
+                          </span>
+                        </div>
+                        <div class="featured-body">
+                          <span class="featured-category">
+                            {categoryLabels[entry.data.category] ??
+                              "Other Research"}
+                          </span>
+                          <h4>
+                            <a href={withBase(`/research/${entry.id}/`)}>
+                              {entry.data.title}
+                            </a>
+                          </h4>
+                          <p>{entry.data.description}</p>
+                        </div>
+                        <div class="featured-bottom">
+                          <span>
+                            {evidenceLabels[entry.data.evidenceType] ??
+                              "DOCUMENTED EVIDENCE"}
+                          </span>
+                          <a
+                            href={withBase(`/research/${entry.id}/`)}
+                            aria-label={`Read featured research: ${entry.data.title}`}
+                          >
+                            READ RESEARCH
+                            <span aria-hidden="true">↗</span>
+                          </a>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div class="archive-toolbar">
+                <div class="archive-toolbar-label">
+                  <span
+                    class="toolbar-square"
+                    aria-hidden="true"
+                  ></span>
+                  <span>FILTER RESEARCH</span>
+                </div>
+                <div
+                  class="filter-controls"
+                  role="group"
+                  aria-label="Filter research by category"
+                >
+                  <button
+                    type="button"
+                    class="filter-button is-active"
+                    data-research-filter="all"
+                    aria-pressed="true"
+                  >
+                    ALL
+                    <span>{publishedCount}</span>
+                  </button>
+                  {availableFilters.map((area) => (
+                    <button
+                      type="button"
+                      class="filter-button"
+                      data-research-filter={area.id}
+                      aria-pressed="false"
+                    >
+                      {area.title.toUpperCase()}
+                      <span>
+                        {categoryCounts[area.id]}
+                      </span>
+                    </button>
+                  ))}
+                  {hasOtherResearch && (
+                    <button
+                      type="button"
+                      class="filter-button"
+                      data-research-filter="other"
+                      aria-pressed="false"
+                    >
+                      OTHER
+                      <span>{categoryCounts.other}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+              <p
+                class="result-count"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                SHOWING
+                <span id="visible-count">
+                  {publishedCount}
+                </span>
+                OF {publishedCount} PUBLISHED ENTRIES
+              </p>
+              <div
+                class="research-list"
+                id="research-list"
+              >
+                {publishedResearch.map((entry, index) => (
+                  <article
+                    class="research-entry"
+                    data-research-entry
+                    data-research-category={entry.data.category}
+                  >
+                    <div
+                      class="research-entry-index"
+                      aria-hidden="true"
+                    >
+                      <span>
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span class="entry-index-line"></span>
+                    </div>
+                    <div class="research-entry-main">
+                      <div class="entry-meta">
+                        <span class="entry-category">
+                          {categoryLabels[entry.data.category] ??
+                            "Other Research"}
+                        </span>
+                        <span
+                          class="meta-divider"
+                          aria-hidden="true"
+                        >
+                          /
+                        </span>
+                        <time
+                          datetime={entry.data.publishedAt.toISOString()}
+                        >
+                          {formatDate(entry.data.publishedAt)}
+                        </time>
+                      </div>
+                      <h3>
+                        <a href={withBase(`/research/${entry.id}/`)}>
+                          {entry.data.title}
+                        </a>
+                      </h3>
+                      <p class="entry-description">
+                        {entry.data.description}
+                      </p>
+                      {entry.data.topics.length > 0 && (
+                        <div
+                          class="entry-tags"
+                          aria-label="Research topics"
+                        >
+                          {entry.data.topics.slice(0, 4).map(
+                            (topic) => (
+                              <span class="entry-tag">
+                                {topic}
+                              </span>
+                            )
+                          )}
+                        </div>
+                      )}
+                      <div class="entry-evidence">
+                        <span class="evidence-label">
+                          EVIDENCE BASIS
+                        </span>
+                        <span>
+                          {evidenceLabels[entry.data.evidenceType] ??
+                            "DOCUMENTED EVIDENCE"}
+                        </span>
+                        <span
+                          class="meta-divider"
+                          aria-hidden="true"
+                        >
+                          /
+                        </span>
+                        <span>
+                          {entry.data.evidence.length}
+                          {" "}DOCUMENTED EVIDENCE{" "}
+                          {entry.data.evidence.length === 1
+                            ? "ITEM"
+                            : "ITEMS"}
+                        </span>
+                      </div>
+                    </div>
+                    <div class="research-entry-side">
+                      <span
+                        class:list={[
+                          "entry-status",
+                          entry.data.status,
+                        ]}
+                      >
+                        <span
+                          class="status-square"
+                          aria-hidden="true"
+                        ></span>
+                        {statusLabels[entry.data.status]}
+                      </span>
+                      <a
+                        class="entry-link"
+                        href={withBase(`/research/${entry.id}/`)}
+                        aria-label={`Read research: ${entry.data.title}`}
+                      >
+                        <span aria-hidden="true">↗</span>
+                      </a>
+                    </div>
+                  </article>
+                ))}
+              </div>
+              <p
+                class="filter-empty"
+                id="filter-empty"
+                hidden
+              >
+                No published research currently matches
+                this category.
+              </p>
+              <div class="archive-end">
+                <span>END OF PUBLISHED RECORDS</span>
+                <span aria-hidden="true">[ EOF ]</span>
+              </div>
+            </>
+          ) : (
+            <div class="empty-archive">
+              <div
+                class="empty-icon"
+                aria-hidden="true"
+              >
+                <span>NS</span>
+                <span class="empty-icon-corner"></span>
+              </div>
+              <div class="empty-copy">
+                <span class="empty-label">
+                  ARCHIVE STATUS / PREPARATION
+                </span>
+                <h3>
+                  Research in preparation
+                  <span>.</span>
+                </h3>
+                <p>
+                  The Research collection is established.
+                  Articles are developed with documented
+                  sources, methodology, evidence
+                  classification and limitations.
+                </p>
+                <p>
+                  Published studies will appear here
+                  once ready for public review.
+                </p>
+                <div class="empty-status">
+                  <span
+                    class="empty-status-dot"
+                    aria-hidden="true"
+                  ></span>
+                  <span>
+                    NO PUBLIC RESEARCH ENTRIES YET
+                  </span>
+                </div>
+              </div>
+            </div>
+          )
+        }
+      </div>
+    </section>
+<!-- METHODOLOGY -->
+    <section
+      class="section methodology-section"
+      aria-labelledby="methodology-title"
+    >
+      <div class="container">
+        <div class="section-topline">
+          <span class="eyebrow">
+            [ RESEARCH STANDARD ]
+          </span>
+          <span class="section-code">
+            DOCUMENTATION.PROTOCOL
+          </span>
+        </div>
+        <div class="methodology-layout">
+          <div class="methodology-copy">
+            <h2 id="methodology-title">
+              Evidence before
+              <span class="accent-blue">
+                assumptions.
+              </span>
+            </h2>
+            <p>
+              Research is more useful when someone else
+              can understand how a conclusion was reached.
+            </p>
+            <p>
+              NULL SECTOR distinguishes original
+              observations, publicly available material,
+              third-party reproductions, simulations,
+              modelled results and theoretical discussion.
+              A finding should not imply more certainty
+              than its supporting evidence allows.
+            </p>
+          </div>
+          <div class="methodology-list">
+            <div class="method-row">
+              <span class="method-number">01</span>
+              <div>
+                <h3>OBJECTIVE & SCOPE</h3>
+                <p>
+                  Define the question, boundaries and
+                  environment.
+                </p>
+              </div>
+            </div>
+            <div class="method-row">
+              <span class="method-number">02</span>
+              <div>
+                <h3>METHOD & SOURCES</h3>
+                <p>
+                  Identify data origins, references and
+                  analytical steps.
+                </p>
+              </div>
+            </div>
+            <div class="method-row">
+              <span class="method-number">03</span>
+              <div>
+                <h3>EVIDENCE & FINDINGS</h3>
+                <p>
+                  Separate directly supported observations
+                  from calculations and interpretations.
+                </p>
+              </div>
+            </div>
+            <div class="method-row">
+              <span class="method-number">04</span>
+              <div>
+                <h3>LIMITATIONS & NEXT STEPS</h3>
+                <p>
+                  Explain uncertainty, missing validation
+                  and opportunities for further work.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+<!-- CLOSING -->
+    <section
+      class="research-closing"
+      aria-labelledby="research-closing-title"
+    >
+      <div class="container closing-layout">
+        <div>
+          <span class="eyebrow">
+            [ CONTINUE EXPLORING ]
+          </span>
+          <h2 id="research-closing-title">
+            Build knowledge
+            <span class="accent-green">_</span>
+          </h2>
+          <p>
+            Explore the learning archive behind the
+            research, or return to the main NULL SECTOR
+            index.
+          </p>
+        </div>
+        <div class="closing-actions">
+          <a class="button" href={withBase("/learning/")}>
+            VIEW LEARNING ARCHIVE
+          </a>
+          <a
+            class="button button-secondary"
+            href={withBase("/")}
+          >
+            BACK TO HOME
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+<script>
+  function initResearchFilters() {
+    const archive =
+      document.querySelector<HTMLElement>(
+        "#research-list"
+      );
+    if (!archive) return;
+    if (archive.dataset.filtersReady === "true") {
+      return;
+    }
+    const buttons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>(
+        "[data-research-filter]"
+      )
+    );
+    const entries = Array.from(
+      archive.querySelectorAll<HTMLElement>(
+        "[data-research-entry]"
+      )
+    );
+    const count =
+      document.querySelector<HTMLElement>(
+        "#visible-count"
+      );
+    const empty =
+      document.querySelector<HTMLElement>(
+        "#filter-empty"
+      );
+    if (!buttons.length) return;
+    archive.dataset.filtersReady = "true";
+    function applyFilter(category: string) {
+      let visible = 0;
+      for (const entry of entries) {
+        const matches =
+          category === "all" ||
+          entry.dataset.researchCategory === category;
+        entry.hidden = !matches;
+        if (matches) {
+          visible += 1;
+        }
+      }
+      for (const button of buttons) {
+        const active =
+          button.dataset.researchFilter === category;
+        button.classList.toggle(
+          "is-active",
+          active
+        );
+        button.setAttribute(
+          "aria-pressed",
+          String(active)
+        );
+      }
+      if (count) {
+        count.textContent = String(visible);
+      }
+      if (empty) {
+        empty.hidden = visible !== 0;
+      }
+    }
+    for (const button of buttons) {
+      button.addEventListener("click", () => {
+        applyFilter(
+          button.dataset.researchFilter ?? "all"
+        );
+      });
+    }
+    applyFilter("all");
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      initResearchFilters,
+      { once: true }
+    );
+  } else {
+    initResearchFilters();
+  }
+  document.addEventListener(
+    "astro:page-load",
+    initResearchFilters
+  );
+</script>
+<style>
+  .research-page {
+    background: var(--bg);
+    color: var(--text);
+    overflow: clip;
+  }
+  .research-page a:focus-visible,
+  .research-page button:focus-visible {
+    outline: 2px solid var(--blue-bright);
+    outline-offset: 4px;
+  }
+  .research-page .accent-blue {
+    color: var(--blue);
+  }
+  .research-page .accent-green {
+    color: var(--green);
+  }
+/* Hero */
+  .research-hero {
+    padding: clamp(4rem, 8vw, 8rem) 0 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-topline,
+  .section-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+  }
+  .hero-topline {
+    margin-bottom: clamp(3rem, 6vw, 6rem);
+  }
+  .system-label,
+  .section-code {
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+  .hero-layout {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1.2fr)
+      minmax(280px, 0.8fr);
+    align-items: end;
+    gap: clamp(2rem, 6vw, 7rem);
+    padding-bottom: clamp(4rem, 7vw, 7rem);
+  }
+  .hero-copy {
+    min-width: 0;
+  }
+  .hero-command {
+    margin: 0 0 1.5rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    overflow-wrap: anywhere;
+  }
+  .prompt {
+    color: var(--green);
+  }
+  .hero-copy h1 {
+    margin: 0 0 2rem;
+    font-family: var(--font-mono);
+    font-size: clamp(3rem, 9vw, 8.5rem);
+    letter-spacing: -0.09em;
+    line-height: 1.05;
+    overflow-wrap: break-word;
+  }
+  .title-dot {
+    color: var(--blue);
+  }
+  .hero-lead {
+    margin: 0 0 1.25rem;
+    font-size: clamp(1.3rem, 2.4vw, 2rem);
+    font-weight: 500;
+    letter-spacing: -0.04em;
+    line-height: 1.4;
+  }
+  .hero-lead span {
+    display: block;
+    color: var(--green);
+  }
+  .hero-description {
+    max-width: 590px;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.8;
+  }
+/* Research protocol */
+  .hero-aside {
+    min-width: 0;
+    border: 1px solid var(--border-strong);
+    background: var(--bg-inset);
+  }
+  .aside-header,
+  .aside-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    line-height: 1.6;
+  }
+  .aside-header {
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-panel);
+  }
+  .aside-symbol {
+    color: var(--green);
+  }
+  .aside-footer {
+    border-top: 1px solid var(--border);
+  }
+  .status-light {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 auto;
+    background: var(--green);
+  }
+  .protocol-row {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 1rem;
+    padding: 1.15rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .protocol-row:nth-last-child(2) {
+    border-bottom: 0;
+  }
+  .protocol-number {
+    color: var(--blue);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+  }
+  .protocol-row strong {
+    display: block;
+    margin-bottom: 0.35rem;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+  }
+  .protocol-row p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1.7;
+  }
+/* Statistics */
+  .research-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-top: 1px solid var(--border);
+  }
+  .stat {
+    display: flex;
+    min-width: 0;
+    min-height: 120px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 1.75rem 1.5rem;
+    border-right: 1px solid var(--border);
+  }
+  .stat:first-child {
+    padding-left: 0;
+  }
+  .stat:last-child {
+    border-right: 0;
+  }
+  .stat-value {
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.06em;
+    line-height: 1;
+  }
+  .stat-label {
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+  }
+/* Section headings */
+  .research-page .section {
+    padding: clamp(4.5rem, 8vw, 7rem) 0;
+  }
+  .section-topline {
+    margin-bottom: 2rem;
+  }
+  .eyebrow-blue {
+    color: var(--blue);
+  }
+  .section-heading {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 0.7fr);
+    align-items: end;
+    gap: 3rem;
+    margin-bottom: 3rem;
+  }
+  .section-heading h2 {
+    min-width: 0;
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 4.5rem);
+    letter-spacing: -0.06em;
+    line-height: 1.15;
+    overflow-wrap: break-word;
+  }
+  .section-heading p {
+    max-width: 500px;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.8;
+  }
+/* Research domains */
+  .disciplines-section {
+    background: var(--bg-raised);
+  }
+  .disciplines-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1px;
+    border: 1px solid var(--border);
+    background: var(--border);
+  }
+  .discipline-card {
+    display: flex;
+    min-width: 0;
+    min-height: 290px;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: var(--bg-raised);
+    transition:
+      background var(--transition-normal),
+      box-shadow var(--transition-normal);
+  }
+  .discipline-card:hover {
+    background: var(--bg-panel);
+    box-shadow: inset 0 3px 0 var(--blue);
+  }
+  .discipline-top,
+  .discipline-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .discipline-number,
+  .discipline-symbol,
+  .discipline-label,
+  .discipline-bottom {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+  }
+  .discipline-number,
+  .discipline-bottom {
+    color: var(--text-dim);
+  }
+  .discipline-symbol,
+  .discipline-label,
+  .discipline-count {
+    color: var(--blue);
+  }
+  .discipline-label {
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+  .discipline-body h3 {
+    margin: 0 0 0.85rem;
+    font-size: 1.3rem;
+    letter-spacing: -0.04em;
+    line-height: 1.3;
+  }
+  .discipline-body p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    line-height: 1.7;
+  }
+  .discipline-bottom {
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+/* Archive */
+  .archive-section {
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .archive-heading {
+    margin-bottom: 3.5rem;
+  }
+  .featured-section {
+    margin-bottom: 4rem;
+  }
+  .subsection-heading {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .subsection-marker,
+  .toolbar-square {
+    display: block;
+    width: 7px;
+    height: 7px;
+    flex: 0 0 auto;
+    background: var(--green);
+  }
+  .subsection-heading h3 {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.07em;
+  }
+  .subsection-line {
+    height: 1px;
+    flex: 1;
+    background: var(--border);
+  }
+/* Featured records */
+  .featured-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    border: 1px solid var(--border);
+    background: var(--border);
+  }
+  .featured-card {
+    display: flex;
+    min-width: 0;
+    min-height: 300px;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 2rem;
+    background: var(--bg-raised);
+    transition: background var(--transition-normal);
+  }
+  .featured-card:hover {
+    background: var(--bg-panel);
+  }
+  .featured-top,
+  .featured-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+  }
+  .featured-label,
+  .featured-category {
+    color: var(--blue);
+  }
+  .featured-category {
+    display: block;
+    margin-bottom: 0.7rem;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+  }
+  .featured-body h4 {
+    margin: 0 0 1rem;
+    font-size: clamp(1.4rem, 2.5vw, 2rem);
+    letter-spacing: -0.04em;
+    line-height: 1.3;
+    overflow-wrap: break-word;
+  }
+  .featured-body h4 a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .featured-body h4 a:hover {
+    color: var(--green);
+  }
+  .featured-body p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.8;
+  }
+  .featured-bottom {
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+  }
+  .featured-bottom a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--green);
+    text-decoration: none;
+  }
+  .featured-bottom a:hover {
+    color: var(--blue);
+  }
+/* Filtering */
+  .archive-toolbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    background: var(--bg-raised);
+  }
+  .archive-toolbar-label {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding-top: 0.65rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    line-height: 1.6;
+  }
+  .filter-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+  .filter-button {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 0;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.03em;
+    line-height: 1.5;
+    cursor: pointer;
+    transition:
+      background var(--transition-fast),
+      border-color var(--transition-fast),
+      color var(--transition-fast);
+  }
+  .filter-button span {
+    color: var(--text-dim);
+  }
+  .filter-button:hover {
+    border-color: var(--blue);
+    color: var(--text);
+  }
+  .filter-button.is-active {
+    border-color: var(--green);
+    background: var(--green);
+    color: var(--bg);
+  }
+  .filter-button.is-active span {
+    color: var(--bg);
+  }
+  .result-count {
+    margin: 1.5rem 0;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    line-height: 1.6;
+  }
+  .result-count span {
+    margin-inline: 0.4rem;
+    color: var(--green);
+  }
+/* Research records */
+  .research-list {
+    border-top: 1px solid var(--border);
+  }
+  .research-entry {
+    display: grid;
+    grid-template-columns:
+      48px
+      minmax(0, 1fr)
+      140px;
+    gap: 1.5rem;
+    padding: 2.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+    transition: background var(--transition-normal);
+  }
+  .research-entry:hover {
+    background: var(--bg-raised);
+  }
+  .research-entry[hidden],
+  .filter-empty[hidden] {
+    display: none !important;
+  }
+  .research-entry-index {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 1rem;
+    color: var(--blue);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+  }
+  .entry-index-line {
+    width: 1px;
+    min-height: 40px;
+    flex: 1;
+    background: var(--border-strong);
+  }
+  .research-entry-main {
+    min-width: 0;
+  }
+  .entry-meta,
+  .entry-evidence {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    line-height: 1.7;
+  }
+  .entry-category {
+    color: var(--blue);
+  }
+  .meta-divider {
+    color: var(--border-strong);
+  }
+  .research-entry-main h3 {
+    margin: 0.85rem 0;
+    font-size: clamp(1.35rem, 2.5vw, 2rem);
+    letter-spacing: -0.04em;
+    line-height: 1.3;
+    overflow-wrap: break-word;
+  }
+  .research-entry-main h3 a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .research-entry-main h3 a:hover {
+    color: var(--green);
+  }
+  .entry-description {
+    max-width: 700px;
+    margin: 0 0 1.25rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.8;
+  }
+  .entry-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .entry-tag {
+    padding: 0.3rem 0.55rem;
+    border: 1px solid var(--border);
+    background: var(--bg-panel);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    line-height: 1.5;
+  }
+  .entry-evidence {
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+  .evidence-label {
+    color: var(--green);
+  }
+  .research-entry-side {
+    display: flex;
+    align-items: flex-end;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 2rem;
+    min-width: 0;
+  }
+  .entry-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    line-height: 1.6;
+    white-space: nowrap;
+  }
+  .entry-status.completed {
+    color: var(--green);
+  }
+  .entry-status.in-progress {
+    color: var(--blue);
+  }
+  .status-square {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    background: currentColor;
+  }
+  .entry-link {
+    display: flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-strong);
+    color: var(--green);
+    font-size: 1.3rem;
+    text-decoration: none;
+    transition:
+      background var(--transition-fast),
+      border-color var(--transition-fast);
+  }
+  .entry-link:hover {
+    border-color: var(--green);
+    background: var(--bg-panel);
+  }
+  .filter-empty {
+    margin: 0;
+    padding: 3rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    text-align: center;
+  }
+  .archive-end {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-top: 1.25rem;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+  }
+/* Empty archive */
+  .empty-archive {
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(2rem, 5vw, 5rem);
+    padding: clamp(3rem, 7vw, 6rem);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-raised);
+  }
+  .empty-icon {
+    position: relative;
+    display: flex;
+    width: 140px;
+    height: 140px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-strong);
+    color: var(--green);
+    font-family: var(--font-mono);
+    font-size: 2.8rem;
+    font-weight: 700;
+    letter-spacing: -0.1em;
+  }
+  .empty-icon-corner {
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    width: 22px;
+    height: 22px;
+    border-top: 3px solid var(--blue);
+    border-left: 3px solid var(--blue);
+  }
+  .empty-label {
+    display: block;
+    margin-bottom: 1rem;
+    color: var(--blue);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.07em;
+  }
+  .empty-copy h3 {
+    margin: 0 0 1.25rem;
+    font-size: clamp(1.7rem, 3vw, 2.7rem);
+    letter-spacing: -0.05em;
+    line-height: 1.2;
+  }
+  .empty-copy h3 span {
+    color: var(--green);
+  }
+  .empty-copy p {
+    max-width: 600px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.8;
+  }
+  .empty-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-top: 1rem;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    line-height: 1.6;
+  }
+  .empty-status-dot {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 auto;
+    background: var(--blue);
+  }
+/* Methodology */
+  .methodology-section {
+    border-top: 1px solid var(--border);
+    background: var(--bg-raised);
+  }
+  .methodology-layout {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 0.9fr)
+      minmax(0, 1.1fr);
+    align-items: start;
+    gap: clamp(3rem, 7vw, 8rem);
+  }
+  .methodology-copy {
+    min-width: 0;
+  }
+  .methodology-copy h2 {
+    margin: 0 0 1.75rem;
+    font-size: clamp(2rem, 5vw, 4.5rem);
+    letter-spacing: -0.06em;
+    line-height: 1.15;
+    overflow-wrap: break-word;
+  }
+  .methodology-copy h2 span {
+    display: block;
+  }
+  .methodology-copy p {
+    max-width: 520px;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.8;
+  }
+  .methodology-list {
+    border-top: 1px solid var(--border-strong);
+  }
+  .method-row {
+    display: grid;
+    grid-template-columns: 45px minmax(0, 1fr);
+    gap: 1rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .method-number {
+    color: var(--blue);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+  .method-row h3 {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    line-height: 1.5;
+  }
+  .method-row p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    line-height: 1.8;
+  }
+/* Closing */
+  .research-closing {
+    padding: clamp(4rem, 7vw, 7rem) 0;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .closing-layout {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+  .closing-layout h2 {
+    margin: 1.5rem 0;
+    font-family: var(--font-mono);
+    font-size: clamp(2rem, 5vw, 4.5rem);
+    letter-spacing: -0.06em;
+    line-height: 1.15;
+  }
+  .closing-layout p {
+    max-width: 510px;
+    margin: 0;
+    color: var(--text-muted);
+    line-height: 1.8;
+  }
+  .closing-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+/* Medium screens */
+  @media (max-width: 1100px) {
+    .disciplines-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .archive-toolbar {
+      flex-direction: column;
+    }
+    .filter-controls {
+      justify-content: flex-start;
+    }
+  }
+/* Tablet */
+  @media (max-width: 850px) {
+    .hero-layout,
+    .section-heading,
+    .methodology-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .hero-layout {
+      align-items: start;
+    }
+    .hero-aside {
+      width: min(100%, 600px);
+    }
+    .section-heading {
+      gap: 1.25rem;
+    }
+    .research-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .stat:nth-child(2) {
+      border-right: 0;
+    }
+    .stat:nth-child(-n + 2) {
+      border-bottom: 1px solid var(--border);
+    }
+    .stat:nth-child(3) {
+      padding-left: 0;
+    }
+    .research-entry {
+      grid-template-columns:
+        36px
+        minmax(0, 1fr);
+    }
+    .research-entry-side {
+      grid-column: 2;
+      align-items: center;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .closing-layout {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+/* Mobile */
+  @media (max-width: 600px) {
+    .research-hero {
+      padding-top: 3rem;
+    }
+    .hero-topline {
+      align-items: flex-start;
+      flex-direction: column;
+      margin-bottom: 3rem;
+    }
+    .hero-copy h1 {
+      font-size: clamp(2.8rem, 12vw, 5rem);
+    }
+    .research-page .section {
+      padding-block: 4rem;
+    }
+    .stat {
+      min-height: 110px;
+      padding: 1.25rem 0.75rem;
+    }
+    .stat:nth-child(odd) {
+      padding-left: 0;
+    }
+    .stat-value {
+      font-size: 2rem;
+    }
+    .stat-label {
+      font-size: 0.6rem;
+    }
+    .disciplines-grid,
+    .featured-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .discipline-card {
+      min-height: 230px;
+    }
+    .featured-card {
+      min-height: 260px;
+      padding: 1.5rem;
+    }
+    .archive-toolbar {
+      padding: 1rem;
+    }
+    .filter-controls {
+      width: 100%;
+    }
+    .research-entry {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1rem;
+      padding: 2rem 0;
+    }
+    .research-entry-index {
+      align-items: center;
+      flex-direction: row;
+    }
+    .entry-index-line {
+      width: auto;
+      height: 1px;
+      min-height: 0;
+    }
+    .research-entry-side {
+      grid-column: 1;
+    }
+    .empty-archive {
+      grid-template-columns: minmax(0, 1fr);
+      padding: 2rem;
+    }
+    .empty-icon {
+      width: 100px;
+      height: 100px;
+      font-size: 2rem;
+    }
+    .closing-actions {
+      width: 100%;
+    }
+    .closing-actions a {
+      width: 100%;
+      justify-content: center;
+      text-align: center;
+    }
+  }
+/* Narrow mobile */
+  @media (max-width: 380px) {
+    .hero-copy h1 {
+      font-size: 12vw;
+    }
+    .filter-button {
+      padding-inline: 0.65rem;
+      font-size: 0.6rem;
+    }
+    .stat-label {
+      font-size: 0.57rem;
+    }
+    .featured-top,
+    .featured-bottom {
+      font-size: 0.6rem;
+    }
+  }
+/* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .research-page *,
+    .research-page *::before,
+    .research-page *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+</style>
