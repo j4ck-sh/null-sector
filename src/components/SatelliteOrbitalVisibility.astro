@@ -1,0 +1,156 @@
+---
+/**
+ * NULL SECTOR — illustrative orbital contact geometry.
+ * Not a propagator, live tracker, pass predictor, or RF link budget.
+ */
+---
+<figure class="ns-orbit" data-ns-orbit aria-labelledby="ns-orbit-title">
+  <header class="ns-orbit-header">
+    <div>
+      <span class="ns-orbit-eyebrow">ORBITAL CONTEXT / 02</span>
+      <h3 id="ns-orbit-title">Why contact windows matter</h3>
+    </div>
+    <span class="ns-orbit-label">CONCEPTUAL</span>
+  </header>
+
+  <p class="ns-orbit-intro">Move the spacecraft around a simplified circular path. A ground station can only communicate when the spacecraft is above its local horizon—and a real link also depends on equipment, pointing, scheduling and signal conditions.</p>
+
+  <div class="ns-orbit-stage">
+    <svg class="ns-orbit-svg" viewBox="0 0 520 330" role="img" aria-label="Schematic Earth, a circular orbital path, a fixed ground station and a movable spacecraft. A line indicates whether Earth obstructs the schematic line of sight.">
+      <defs>
+        <radialGradient id="ns-orbit-earth-gradient" cx="35%" cy="30%" r="75%">
+          <stop offset="0" stop-color="#23495c" />
+          <stop offset="1" stop-color="#10232d" />
+        </radialGradient>
+      </defs>
+      <circle cx="260" cy="165" r="132" fill="none" stroke="var(--ns-blue)" stroke-width="1.5" stroke-dasharray="5 7" opacity=".55" />
+      <circle cx="260" cy="165" r="82" fill="url(#ns-orbit-earth-gradient)" stroke="var(--ns-blue)" stroke-width="1.5" />
+      <path d="M211 118q26-17 38 4l-9 16 13 15-8 23-21 8-8-20-16-13zm76 53 23-9 12 21-20 27-17-10z" fill="var(--ns-green)" opacity=".25" />
+      <text x="260" y="173" text-anchor="middle" fill="var(--ns-text)" font-size="12" font-family="monospace" letter-spacing="2">EARTH</text>
+      <path d="M260 165 317.98 107.02" stroke="var(--ns-muted)" stroke-dasharray="3 5" opacity=".4" />
+      <line data-ns-line x1="318" y1="107" x2="260" y2="33" stroke="var(--ns-green)" stroke-width="2" stroke-dasharray="6 5" />
+      <circle cx="317.98" cy="107.02" r="5.5" fill="var(--ns-green)" stroke="var(--ns-stage)" stroke-width="2" />
+      <path d="M318 107l17-8" stroke="var(--ns-green)" stroke-width="1.5" />
+      <text x="341" y="98" fill="var(--ns-text)" font-family="monospace" font-size="11">GROUND STATION</text>
+      <g data-ns-craft transform="translate(260 33)">
+        <rect x="-8" y="-7" width="16" height="14" rx="2" fill="var(--ns-text)" />
+        <rect x="-28" y="-6" width="16" height="12" fill="var(--ns-blue)" stroke="var(--ns-text)" stroke-width=".8" />
+        <rect x="12" y="-6" width="16" height="12" fill="var(--ns-blue)" stroke="var(--ns-text)" stroke-width=".8" />
+        <path d="M-12 0h4m16 0h4" stroke="var(--ns-text)" stroke-width="2" />
+      </g>
+      <text x="16" y="22" fill="var(--ns-muted)" font-size="10" font-family="monospace">SCHEMATIC / NOT TO SCALE</text>
+    </svg>
+  </div>
+
+  <div class="ns-orbit-controls">
+    <label for="ns-orbit-position">Spacecraft position <output data-ns-angle for="ns-orbit-position">270°</output></label>
+    <input id="ns-orbit-position" data-ns-slider type="range" min="0" max="360" step="1" value="270" aria-describedby="ns-orbit-explanation" />
+    <div class="ns-orbit-status" role="status" aria-live="polite" aria-atomic="true">
+      <span data-ns-indicator class="ns-orbit-indicator" aria-hidden="true"></span>
+      <strong data-ns-status>Illustrative line of sight: clear</strong>
+    </div>
+    <p id="ns-orbit-explanation" data-ns-explanation>At this schematic position, the line of sight is above the local horizon. This suggests a possible contact opportunity, not a confirmed communication session.</p>
+  </div>
+
+  <figcaption>Teaching aid only. The slider changes an arbitrary geometric angle; it does not use a TLE, SGP4, real ground-station coordinates, Earth rotation, atmospheric effects or a link budget. A real contact-window estimate needs mission-specific data.</figcaption>
+</figure>
+
+<script>
+  function initNsOrbit() {
+    document.querySelectorAll<HTMLElement>('[data-ns-orbit]').forEach((root) => {
+      if (root.dataset.initialized === 'true') return;
+      const slider = root.querySelector<HTMLInputElement>('[data-ns-slider]');
+      const craft = root.querySelector<SVGGElement>('[data-ns-craft]');
+      const line = root.querySelector<SVGLineElement>('[data-ns-line]');
+      const angle = root.querySelector<HTMLOutputElement>('[data-ns-angle]');
+      const status = root.querySelector<HTMLElement>('[data-ns-status]');
+      const indicator = root.querySelector<HTMLElement>('[data-ns-indicator]');
+      const explanation = root.querySelector<HTMLElement>('[data-ns-explanation]');
+      if (!slider || !craft || !line || !angle || !status || !indicator || !explanation) return;
+      root.dataset.initialized = 'true';
+
+      const cx = 260, cy = 165, orbitR = 132, earthR = 82;
+      const gx = cx + earthR / Math.sqrt(2), gy = cy - earthR / Math.sqrt(2);
+      const update = () => {
+        const degrees = Number(slider.value);
+        const radians = degrees * Math.PI / 180;
+        const sx = cx + orbitR * Math.cos(radians);
+        const sy = cy + orbitR * Math.sin(radians);
+        craft.setAttribute('transform', `translate(${sx.toFixed(2)} ${sy.toFixed(2)})`);
+        line.setAttribute('x1', gx.toFixed(2));
+        line.setAttribute('y1', gy.toFixed(2));
+        line.setAttribute('x2', sx.toFixed(2));
+        line.setAttribute('y2', sy.toFixed(2));
+
+        // The station lies on the Earth disk. A nonnegative dot product
+        // with the outward surface normal means the ray clears the horizon.
+        const dx = sx - gx, dy = sy - gy;
+        const outward = (gx - cx) * dx + (gy - cy) * dy;
+        const clear = outward >= 0;
+        line.setAttribute('stroke', clear ? 'var(--ns-green)' : 'var(--ns-amber)');
+        line.setAttribute('stroke-dasharray', clear ? '6 5' : '3 7');
+        angle.textContent = `${degrees}°`;
+        status.textContent = clear ? 'Illustrative line of sight: clear' : 'Illustrative line of sight: blocked';
+        indicator.classList.toggle('ns-blocked', !clear);
+        explanation.textContent = clear
+          ? 'The schematic line of sight is above the local horizon. A real contact still requires a working, scheduled and compatible radio link.'
+          : 'Earth blocks the schematic line of sight. The station would need to wait for a suitable pass or use other infrastructure.';
+      };
+      slider.addEventListener('input', update);
+      update();
+    });
+  }
+
+  document.addEventListener('astro:page-load', initNsOrbit);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNsOrbit, { once: true });
+  } else {
+    initNsOrbit();
+  }
+</script>
+
+<style>
+  .ns-orbit {
+    --ns-green: var(--green, #47d7a0);
+    --ns-blue: var(--blue, #66a9e5);
+    --ns-amber: #e4ad68;
+    --ns-text: var(--text, #e4edf3);
+    --ns-muted: var(--text-muted, #aebec5);
+    --ns-dim: var(--text-dim, #91a6b5);
+    --ns-border: var(--border, #30434d);
+    --ns-border-strong: var(--border-strong, #3a515d);
+    --ns-panel: var(--bg-raised, #101820);
+    --ns-stage: var(--bg-inset, #09131c);
+    margin: 2.5rem 0;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--ns-border-strong);
+    background: var(--ns-panel);
+    color: var(--ns-text);
+    font-family: inherit;
+  }
+  .ns-orbit-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; padding: 1.35rem 1.4rem 0; }
+  .ns-orbit-eyebrow { color: var(--ns-blue); font: 700 .65rem/1.5 var(--font-mono, monospace); letter-spacing: .12em; }
+  .ns-orbit h3 { margin: .55rem 0 0; color: var(--ns-text); font-size: 1.2rem; line-height: 1.4; letter-spacing: -.025em; }
+  .ns-orbit-label { flex-shrink: 0; border: 1px solid var(--ns-border); padding: .4rem .55rem; color: var(--ns-dim); font: 600 .6rem/1.4 var(--font-mono, monospace); letter-spacing: .07em; }
+  .ns-orbit-intro { margin: 1rem 0 1.35rem; padding: 0 1.4rem; color: var(--ns-muted); font-size: .88rem; line-height: 1.75; }
+  .ns-orbit-stage { margin: 0 1.4rem 1.35rem; border: 1px solid var(--ns-border); background: radial-gradient(ellipse at center, #142734 0%, var(--ns-stage) 80%); }
+  .ns-orbit-svg { display: block; width: 100%; height: auto; max-height: 360px; }
+  .ns-orbit-controls { padding: 0 1.4rem 1.35rem; }
+  .ns-orbit-controls label { display: flex; justify-content: space-between; gap: 1rem; color: var(--ns-muted); font-size: .82rem; line-height: 1.5; }
+  .ns-orbit-controls output { color: var(--ns-green); font: 700 .8rem var(--font-mono, monospace); font-variant-numeric: tabular-nums; }
+  .ns-orbit-controls input { display: block; width: 100%; min-height: 28px; margin: .8rem 0 1rem; accent-color: var(--ns-green); cursor: pointer; }
+  .ns-orbit-controls input:focus-visible { outline: 2px solid var(--ns-green); outline-offset: 5px; }
+  .ns-orbit-status { display: flex; align-items: center; gap: .65rem; color: var(--ns-text); font-size: .82rem; line-height: 1.5; }
+  .ns-orbit-indicator { width: 8px; height: 8px; flex: none; background: var(--ns-green); }
+  .ns-orbit-indicator.ns-blocked { background: var(--ns-amber); }
+  .ns-orbit-controls p { margin: .8rem 0 0; color: var(--ns-muted); font-size: .8rem; line-height: 1.75; }
+  .ns-orbit figcaption { border-top: 1px solid var(--ns-border); padding: 1rem 1.4rem; color: var(--ns-dim); font-size: .72rem; line-height: 1.7; }
+  @media (max-width: 600px) {
+    .ns-orbit-header { flex-wrap: wrap; }
+    .ns-orbit-header, .ns-orbit-controls { padding-left: 1rem; padding-right: 1rem; }
+    .ns-orbit-intro { padding-left: 1rem; padding-right: 1rem; }
+    .ns-orbit-stage { margin-left: 1rem; margin-right: 1rem; }
+    .ns-orbit figcaption { padding-left: 1rem; padding-right: 1rem; }
+  }
+</style>

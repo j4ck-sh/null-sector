@@ -1,6 +1,10 @@
 ---
 
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import SatelliteCommandPath from "../../components/SatelliteCommandPath.astro";
+import SatelliteArchitecture from "../../components/SatelliteArchitecture.astro";
+import SatelliteOrbitalVisibility from "../../components/SatelliteOrbitalVisibility.astro";
+import SatelliteRFSignals from "../../components/SatelliteRFSignals.astro";
 
 import {
 
@@ -607,9 +611,24 @@ const hasCredentialSection = Boolean(
           }
 
           <div class="article-body">
-
             <Content />
 
+            {entry.id === "satellite-cybersecurity" && (
+              <>
+                <div data-satellite-visual="architecture">
+                  <SatelliteArchitecture />
+                </div>
+                <div data-satellite-visual="orbital">
+                  <SatelliteOrbitalVisibility />
+                </div>
+                <div data-satellite-visual="rf">
+                  <SatelliteRFSignals />
+                </div>
+                <div data-satellite-visual="command">
+                  <SatelliteCommandPath />
+                </div>
+              </>
+            )}
           </div>
 
           {
@@ -1131,9 +1150,38 @@ const hasCredentialSection = Boolean(
   // Clean up old listeners before binding the new article.
   let disposeReadingNavigator: (() => void) | undefined;
 
+  function positionSatelliteVisuals() {
+    const body = document.querySelector<HTMLElement>(".article-body");
+    if (!body) return;
+
+    const placements = [
+      { visual: "architecture", heading: "A satellite is more than the spacecraft" },
+      { visual: "orbital", heading: "Why orbital mechanics matters to security" },
+      { visual: "rf", heading: "The RF link is not the whole security model" },
+      { visual: "command", heading: "Thinking about commands as a chain of trust" },
+    ];
+
+    const headings = Array.from(body.querySelectorAll<HTMLElement>("h2, h3"));
+    for (const { visual, heading: target } of placements) {
+      const diagram = body.querySelector<HTMLElement>(
+        `[data-satellite-visual="${visual}"]`
+      );
+      const heading = headings.find(
+        (element) => element.textContent?.trim().toLowerCase() === target.toLowerCase()
+      );
+      if (!diagram || !heading) continue;
+
+      // Insert after the section's opening paragraph, if present.
+      const next = heading.nextElementSibling;
+      const anchor = next?.tagName === "P" ? next : heading;
+      anchor.insertAdjacentElement("afterend", diagram);
+    }
+  }
+
   function initReadingNavigator() {
     disposeReadingNavigator?.();
     disposeReadingNavigator = undefined;
+    positionSatelliteVisuals();
 
     const article = document.querySelector<HTMLElement>("#article-content");
     const body = article?.querySelector<HTMLElement>(".article-body");
@@ -2214,6 +2262,18 @@ const hasCredentialSection = Boolean(
 
     border-top: 1px solid var(--border-strong);
 
+  }
+
+/* Inline satellite teaching diagrams */
+
+  .article-body [data-satellite-visual] {
+    min-width: 0;
+    max-width: 100%;
+    margin: 1.75rem 0 2.5rem;
+  }
+
+  .article-body [data-satellite-visual] :global(svg) {
+    max-width: 100%;
   }
 
 /* Certificate and credential display */

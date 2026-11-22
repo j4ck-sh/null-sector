@@ -1,7 +1,6 @@
-
 ---
 title: "Satellite Cybersecurity Foundations — Learning Review"
-description: "A reflection on completing Angelina Tsuboi's Satellite Cybersecurity Foundations course, covering space-system architecture, communications, embedded security, satellite OSINT, guided CTF learning, and threat modelling."
+description: "Notes from studying satellite architecture, orbital data, RF communications, onboard computing and space-system security, including the instructor-guided Hack the Orbit workshop."
 provider: "Udemy — Angelina Tsuboi"
 category: "learning-path"
 status: "completed"
@@ -13,6 +12,7 @@ topics:
   - "Satellite OSINT"
   - "Orbital Mechanics"
   - "Satellite Communications"
+  - "RF Security"
   - "Spacecraft Computing"
   - "Embedded Security"
   - "Starlink"
@@ -36,475 +36,107 @@ references:
 
 # Satellite Cybersecurity Foundations
 
-> **Learning record:** NS-LRN-002  
-> **Course:** Satellite Cybersecurity Foundations  
-> **Instructor:** Angelina Tsuboi  
-> **Platform:** Udemy  
-> **Status:** Completed  
-> **Course length:** 5 hours 17 minutes  
-> **Structure:** 3 sections, 14 lectures  
-> **Practical component:** Instructor-guided Hack the Orbit walkthrough  
-> **Professional certification:** Not applicable
+*NS-LRN-002 · Angelina Tsuboi · Udemy · Completed 17 November 2026*
 
-## Introduction
+Satellite security is an interesting extension of familiar cybersecurity problems. There are still computers, networks, software updates, privileged users and communications links. What changes is the environment in which those things have to work. A spacecraft may have limited power and processing capacity, only intermittent contact with its operators, and no practical way to replace a failed component once it is deployed.
 
-Satellite cybersecurity introduces security questions that are familiar in principle but different in their operational context.
+I took Angelina Tsuboi's **Satellite Cybersecurity Foundations** course to understand that environment better. The course runs for 5 hours and 17 minutes across three sections and fourteen lectures. It introduces the architecture of space systems, orbital mechanics, satellite OSINT, communications, onboard computing and security frameworks, with a Hack the Orbit workshop towards the end.
 
-A spacecraft may operate far from its ground infrastructure, communicate only during particular windows, and depend on hardware that cannot easily be repaired or replaced. Its onboard computing resources, power budget, reliability requirements, and mission lifetime all influence security decisions.
+These are my notes on the parts I found most useful and the questions they raised for further study. The Hack the Orbit portion was **instructor-guided**; I followed the walkthrough rather than solving the challenges independently. I have not tested an operational spacecraft or identified vulnerabilities in a real mission.
 
-I completed Angelina Tsuboi's **Satellite Cybersecurity Foundations** course to develop a broader understanding of these constraints and how cybersecurity applies to space systems.
+## A satellite is more than the spacecraft
 
-The course covers satellite architecture, orbital concepts, public-source research, engineering specifications, onboard computing, communications, defensive security, and the SPARTA framework. It also includes the Hack the Orbit workshop, which I followed through the instructor's walkthrough.
+It is tempting to picture satellite cybersecurity as protecting a computer in orbit. That is only part of the system. The spacecraft has to receive instructions, report its state, operate its payload and remain connected to an organisation on the ground. Mission-control software, ground stations, operator accounts, data-processing services and development pipelines all become part of the security picture.
 
-This article records **what I studied, what I took away, and what I want to investigate further**.
+That wider view changes where I would start a threat model. An attacker would not necessarily need to reach the spacecraft directly. A compromised operator account could affect the ground-side command process. An insecure update pipeline could introduce unwanted changes before software ever reaches orbit. Poor separation between mission services could allow a problem in one part of the infrastructure to spread into another.
 
-It is not a record of independent spacecraft testing or a claim that I reproduced every demonstrated technique without guidance.
+The architecture varies considerably between missions, so these are possible attack paths rather than claims about any particular system. The useful question is **where trust is established, and what happens when it is misplaced**. A satellite might correctly execute a command that originated from a compromised but otherwise authorised ground system.
 
-## 01 — Understanding Space Systems
+## Working with public satellite information
 
-One of the most useful ideas from the course was that a satellite should be considered part of a larger operational system.
+The OSINT material showed how much context can be gathered before any hands-on investigation. Public catalogues, operator websites, engineering papers, regulatory filings and technical specifications can help identify a mission and describe its stated purpose, orbital characteristics and supporting technology.
 
-The spacecraft is only one component.
+The course also demonstrated a SatNow Scraper in the context of collecting public satellite information. I watched that demonstration; I did not independently build or validate the scraper for this record.
 
-A mission may also depend on:
+The main limitation is that **public information describes what a source reports**, not necessarily what is happening on a spacecraft at that moment. A published specification may describe a design or an earlier configuration. An orbital catalogue may provide useful predicted positions, but it does not expose flight-computer logs or live telemetry. Keeping those distinctions clear matters if the research is later used to support a security claim.
 
-- Ground stations and communications infrastructure.
-- Mission-control systems.
-- Operator workstations and accounts.
-- Software-development and update processes.
-- Data-processing services.
-- External suppliers and supporting networks.
+I explored the data-provenance side of this in a separate piece, [Satellite OSINT: Analysing Public Orbital Data from the ISS](/research/satellite-osint-methodology/). That research record deals with a historical dataset and a calculation based on its published values; it is not evidence of live tracking or spacecraft access.
 
-A simplified view is:
+## Why orbital mechanics matters to security
 
-```text
-         SPACE SEGMENT
-       +------------------+
-       |    Spacecraft    |
-       |------------------|
-       | Flight computer  |
-       | Payload          |
-       | Power systems    |
-       | Attitude control |
-       | Communications   |
-       +------------------+
-                |
-         Communication link
-                |
-       +------------------+
-       |  Ground station  |
-       +------------------+
-                |
-       +------------------+
-       | Mission systems  |
-       | Operators        |
-       | Data processing  |
-       +------------------+
-         GROUND SEGMENT
-```
+Orbital mechanics initially seems separate from cybersecurity, but it has direct operational consequences. Depending on the mission and its communications infrastructure, the spacecraft may only be visible to a particular ground station during certain periods. Those periods can affect when commands are sent, when telemetry is received and how quickly an operator can investigate unexpected behaviour.
 
-The architecture varies between missions, but the security implication is consistent: protecting the spacecraft alone is not enough.
+A useful starting point is the **Two-Line Element set**, or TLE. It records orbital parameters at a particular epoch. A propagation model such as SGP4 can use those parameters to estimate where an object should be at a requested time. That is a prediction based on an orbital model, not a continuous location report transmitted by the spacecraft.
 
-### Key learning
+The difference becomes important when interpreting evidence. The age of an element set, atmospheric drag, manoeuvres and other modelling limitations can affect a predicted position. An estimated contact opportunity also does not prove that a radio link was active or that a command was sent. To make those claims, an investigation would need operational records or other supporting observations.
 
-A compromise of a ground-system account, a poorly protected command service, or an insecure communications path could affect mission operations without requiring physical access to the satellite.
 
-This made **system boundaries and trust relationships** a recurring theme throughout the course.
+I have kept the terminology and underlying calculations in [Satellite Orbital Data: Reading the Basics](/field-notes/satellite-orbital-data-basics/). This course review is more concerned with what orbital context can and cannot tell an investigator.
 
-## 02 — Satellite OSINT
+## Engineering constraints and spacecraft computers
 
-The satellite OSINT material introduced how publicly available information can help build an initial understanding of a space system.
+The engineering sections helped connect the security ideas to the conditions under which spacecraft operate. Electrical power, thermal limits, bandwidth, processing resources, radiation exposure and mission lifetime can all influence the design. Reliability and recovery are especially important when physical maintenance is unavailable.
 
-Relevant sources may include:
+That creates trade-offs around flight software. Signing an update can help establish its origin and integrity, but it cannot guarantee that the new software is free from defects. Secure boot may help establish a trusted startup process; rollback protection can prevent older vulnerable images from being reintroduced. Both still need to fit into a recovery plan for the case where a legitimate update fails.
 
-- Satellite catalogues.
-- Operator and mission websites.
-- Engineering publications.
-- Public technical specifications.
-- Regulatory documentation.
-- Orbital-data providers.
-- Research papers.
+The course's Starlink material provided a useful contrast between thinking about one spacecraft and thinking about a constellation. A distributed system introduces many assets, communication paths and operational dependencies. I treated Starlink as an architectural learning example, not as a target I assessed.
 
-The course also included a SatNow Scraper demonstration, which introduced automated collection in the context of satellite-related public information.
+I also found it useful to think about what a security analyst would actually observe after a fault. A software defect, radiation-related upset or malicious change could sometimes produce superficially similar symptoms. Unusual behaviour is a reason to investigate, not enough on its own to identify an attacker.
 
-I did not independently develop or validate that scraper for this learning record.
+For a future embedded-security exercise, I would want to examine a legally obtained firmware image or a deliberately vulnerable lab target, record the tools and versions used, and distinguish what I observed from what I inferred. No spacecraft firmware was extracted or reverse-engineered as part of this course review.
 
-### Key learning
+## The RF link is not the whole security model
 
-Public information can support technical context, but its reliability depends on the source.
+Satellite communications brought together two areas that are easy to confuse: getting information across a radio channel and deciding whether that information should be trusted.
 
-A published spacecraft specification does not necessarily establish the configuration of an operational satellite. Similarly, an orbital catalogue record does not provide access to onboard telemetry.
+Modulation describes how information is represented in a signal; demodulation is part of recovering it at the receiver. Framing and error correction help the receiver interpret the transmitted data reliably. Encryption, authentication and message-integrity protections answer different questions. A signal can be received successfully without its contents being readable, and a readable message is not automatically an authorised command.
 
-This distinction became the basis for a separate NULL SECTOR research article:
+Interference or jamming can make a link unavailable. Spoofed transmissions raise questions about origin. Replayed messages raise questions about freshness, even when the original message was valid. Interception may expose information if confidentiality protections are missing or inadequate. None of these is solved simply by saying that the link is encrypted.
 
-**[Satellite OSINT: Analysing Public Orbital Data from the ISS](/research/satellite-osint-methodology/)**
+Telemetry, tracking and command (**TT&C**) deserves particular attention because commands can change spacecraft behaviour. A receiver needs to know more than whether a message has arrived intact. It may need to verify who sent it, whether that identity is permitted to request the action, whether the message is fresh, and whether the requested operation is safe in the spacecraft's current state.
 
-That Research record examines a specific historical dataset, its provenance, and a calculation supported by the reported values.
+That last point is easy to overlook: **authentic does not necessarily mean authorised or safe**. A command can be cryptographically valid and still be inappropriate for the situation. I did not intercept, decode or decrypt operational satellite communications for this learning record.
 
-The investigation and its findings belong there rather than in this course review.
+## Following the Hack the Orbit workshop
 
-## 03 — Orbital Mechanics and Tracking
+The course includes a Hack the Orbit workshop lasting approximately one hour and nineteen minutes. I followed the instructor's walkthrough, which connected the earlier material to challenge-based investigation, including public information, orbital data and simulated attack-and-detection concepts.
 
-The orbital mechanics and tracking material helped explain why spacecraft movement matters to security operations.
+Watching the instructor work through the challenges helped me understand the sequence of reasoning and the kinds of evidence being used. It is not the same as solving the exercises independently, so I am recording it as guided training rather than presenting it as an original CTF result.
 
-For some missions, communication with a spacecraft may depend on orbital geometry and ground-station visibility.
+If I revisit those exercises without the walkthrough, I would document the challenge objective, supplied files, tool versions, commands, outputs and the reasoning behind each conclusion. I would also record any hints used. That would make the difference between a guided demonstration and a reproducible independent attempt visible to the reader.
 
-This can affect:
+## Thinking about commands as a chain of trust
 
-- When operators can send commands.
-- When telemetry can be received.
-- How quickly an anomaly can be investigated.
-- When software updates can be delivered.
-- What evidence is available during an incident.
+The secure-by-design material returned to a theme from the beginning of the course: the most important security questions often sit **between** components.
 
-The course introduced concepts such as orbital elements, satellite tracking, and propagation.
+Consider a hypothetical operator issuing a command. The operator interacts with ground software, the command passes through communications infrastructure, and the spacecraft eventually receives and processes it. At each step, something different must be trusted. The operator needs appropriate privileges. Ground software must preserve and record the intended command. The transmitted message needs protection against unauthorised changes or replay. The spacecraft must validate the instruction before allowing it to affect flight software or a subsystem.
 
-### Key learning
+This is why no single control is sufficient. Encryption cannot replace authorisation, and redundancy cannot guarantee that an invalid command will be rejected. Even correctly authenticated instructions need operational and safety checks.
 
-A satellite's predicted position and an independently observed position are not the same kind of evidence.
+The diagram is a conceptual teaching model. It is not a representation of the command architecture of Starlink or any other named mission.
 
-A tracking interface may display a model-based prediction rather than a continuous real-time measurement.
+## Using SPARTA without treating a model as evidence
 
-Understanding that distinction is important when interpreting operational events or investigating unexpected behaviour.
+The course introduced **SPARTA (Space Attack Research and Tactic Analysis)** as a way to organise threats and defensive thinking in a space-system context. It is useful because the assets and operational dependencies of a mission do not map perfectly onto a conventional office network.
 
-For the underlying terminology, I maintain a separate reference note:
+I see the framework as a starting point for structured questions. Given a fictional ground-station and spacecraft architecture, I could identify an asset such as the command service, describe an assumed attacker capability, map relevant behaviours and consider where evidence or controls might exist. But a mapped technique is a hypothesis until there is supporting evidence. A framework entry does not show that an attack occurred, or even that the target system has the suspected weakness.
 
-**[Satellite Orbital Data: Reading the Basics](/field-notes/satellite-orbital-data-basics/)**
+That distinction is particularly important for public-facing research. It is possible to produce a detailed threat model without claiming to have found a vulnerability.
 
-That Field Note covers TLEs, mean motion, epochs, and SGP4. Detailed formulas and worked examples are intentionally kept out of this Learning record.
+## A digital-forensics perspective
 
-## 04 — Engineering Specifications and Starlink
+The course also made me consider what an investigation would look like if a spacecraft behaved unexpectedly. Much of the available evidence might be on the ground: operator activity, command histories, ground-station records, software-update logs, network events and mission-control records. Spacecraft telemetry could provide additional context, depending on what the mission records and what can be retrieved.
 
-The course's engineering material provided context for how spacecraft constraints affect technical and security decisions.
+An investigator would need to establish a timeline carefully. Was a command actually submitted? Which account or service submitted it? Did the ground station transmit it? Did the spacecraft acknowledge it? Did later telemetry support the claimed outcome? Those are separate questions, and the answers might come from systems with different clocks, incomplete logs or gaps in communications coverage.
 
-Space systems must account for factors such as:
+Orbital context might help explain why telemetry was unavailable during a period, but it would not independently prove malicious interference. Equipment faults, software defects, environmental effects and planned operational changes would all need consideration. I find this a useful connection to digital forensics: **an unexpected outcome is not an attribution**.
 
-- Electrical power availability.
-- Thermal conditions.
-- Processing capacity.
-- Communications bandwidth.
-- Reliability and fault tolerance.
-- Mission duration.
-- Physical maintenance limitations.
+## What I am taking forward
 
-These constraints can influence the practicality of security controls.
+The biggest shift in my thinking was to treat satellite cybersecurity as a system-design and evidence problem rather than an isolated radio or onboard-computer problem. The spacecraft, its ground infrastructure, its communications links and its operational procedures all affect the security outcome. Engineering constraints make some controls harder to deploy, while limited visibility can make incidents harder to reconstruct.
 
-For example, software-update procedures must consider not only integrity and authentication but also operational risk and recovery options.
+There are several practical directions I want to pursue from here. One is a reproducible orbital-data exercise using a clearly attributed public dataset and documented propagation steps. Another is to study modulation and demodulation using generated or otherwise authorised signals, without implying access to operational transmissions. I would also like to practise firmware analysis on appropriate lab images and apply SPARTA to a fictional reference architecture with clearly labelled assumptions.
 
-### Starlink case study
+Those are future activities, not completed investigations. When I carry them out, the methods and results will belong in NULL SECTOR's Research or Field Notes sections rather than being folded into this course completion record.
 
-The course also used Starlink as a learning context.
-
-This helped me think about the differences between a single spacecraft and a constellation involving many distributed assets, communications paths, and supporting ground systems.
-
-### Key learning
-
-Security architecture cannot be separated from engineering architecture.
-
-Controls that appear straightforward in a conventional IT environment may require different implementation choices when applied to a spacecraft or constellation.
-
-This was a course-based learning exercise. I did not independently assess Starlink infrastructure or identify vulnerabilities.
-
-## 05 — Spacecraft Computers and Embedded Security
-
-The spacecraft computing material connected satellite systems to familiar embedded-security concepts.
-
-Spacecraft computers may need to operate under conditions involving:
-
-- Radiation exposure.
-- Restricted power and processing resources.
-- Long operational lifetimes.
-- High reliability requirements.
-- Limited opportunities for maintenance.
-- Constrained update and recovery procedures.
-
-These conditions make software integrity and fault handling especially important.
-
-### Security questions raised
-
-The material prompted several questions relevant to embedded-system security:
-
-| Area | Security question |
-| --- | --- |
-| Boot process | How is trusted software established? |
-| Firmware integrity | Can unauthorised modifications be detected? |
-| Updates | How are new software images authenticated? |
-| Recovery | What happens if an update fails? |
-| Debug interfaces | How is maintenance access controlled? |
-| Cryptographic material | How are sensitive keys protected? |
-| Fault handling | Can a failure be contained safely? |
-
-These are general security considerations, not findings about a particular spacecraft.
-
-### Key learning
-
-Embedded security principles remain relevant in space systems, but they must be applied alongside mission-specific reliability and operational requirements.
-
-I have not independently extracted or reverse-engineered spacecraft firmware for this article.
-
-That would require a separate, documented research activity using appropriately obtained material.
-
-## 06 — Satellite Communications Security
-
-The communications material was valuable because satellite security depends on both the physical communications channel and the controls applied to the information carried over it.
-
-At a high level, a communications system must transmit information, recover it at the receiver, and determine how that information should be trusted and processed.
-
-The course introduced communications concepts including modulation, demodulation, and security considerations.
-
-### Distinguishing security properties
-
-One important distinction is that several protections solve different problems.
-
-| Property | Main purpose |
-| --- | --- |
-| Confidentiality | Protect information from unauthorised disclosure |
-| Integrity | Detect unauthorised modification |
-| Authentication | Establish the claimed origin of information |
-| Availability | Keep communications usable when required |
-
-Successfully receiving or decoding a signal does not necessarily mean its contents can be decrypted.
-
-Likewise, encryption does not automatically authenticate a command or prevent radio-frequency interference.
-
-### Key learning
-
-Communications security is layered.
-
-A mission may need to consider interference resistance, authentication, command validation, encryption, and operational resilience together.
-
-I did not independently intercept, decode, or decrypt operational satellite communications as part of this learning record.
-
-## 07 — Hack the Orbit: Guided CTF Learning
-
-The course includes a Hack the Orbit workshop of approximately 1 hour and 19 minutes.
-
-**I followed the instructor's walkthrough rather than independently solving the challenges.**
-
-This distinction is important because understanding a demonstrated method is not the same as independently executing and validating it.
-
-### What the workshop contributed
-
-The workshop provided an educational setting for connecting satellite cybersecurity concepts with challenge-based investigation.
-
-The course material describes areas including OSINT, orbital data, simulated attacks, and detection.
-
-Following the walkthrough helped me understand how the instructor approached the exercises and connected the concepts.
-
-It did not establish independent proficiency in every demonstrated technique.
-
-### Activity classification
-
-| Item | Record |
-| --- | --- |
-| Environment | Educational CTF |
-| Participation | Instructor-guided walkthrough |
-| Independent challenge solutions | Not claimed |
-| Operational satellite access | Not claimed |
-| Original telemetry findings | Not claimed |
-| Real-world security incident | Not claimed |
-
-### Key learning
-
-A controlled exercise can illustrate realistic technical ideas without documenting a real-world incident.
-
-For future independent work, I want to record the exercise environment, inputs, actions, results, and limitations separately.
-
-That would make it possible to distinguish a guided learning experience from independently reproduced work.
-
-## 08 — Secure-by-Design and Threat Modelling
-
-The secure-by-design material connected security requirements with decisions made during system development.
-
-For spacecraft, this is particularly relevant because deployed hardware may be difficult or impossible to service.
-
-A simplified command path illustrates the importance of trust boundaries:
-
-```text
-Mission operator
-      |
-      v
-Ground command system
-      |
-      v
-Communications service
-      |
-      v
-Spacecraft receiver
-      |
-      v
-Command validation
-      |
-      v
-Flight software
-      |
-      v
-Spacecraft subsystem
-```
-
-Each stage raises security questions.
-
-Who can issue commands? How is their origin verified? Can messages be replayed? What happens when unexpected instructions arrive?
-
-### Key learning
-
-No single control addresses every threat.
-
-Encryption does not replace command authorisation. Redundancy does not necessarily protect against malicious commands. Secure software design does not remove the need for monitoring and operational procedures.
-
-Security controls need to be considered together and evaluated against the system's actual architecture.
-
-The diagram is conceptual, not a description of a specific spacecraft implementation.
-
-## 09 — SPARTA Framework
-
-The course introduced **SPARTA — Space Attack Research and Tactic Analysis**.
-
-SPARTA provides a framework for organising adversarial behaviours and defensive considerations relevant to space systems.
-
-The framework is useful because spacecraft and ground infrastructure introduce operational contexts that may not be fully represented by conventional enterprise-network examples.
-
-Relevant areas include:
-
-- Spacecraft command and control.
-- Ground-to-space communications.
-- Mission operations.
-- Onboard computing.
-- Supporting ground infrastructure.
-- Dependencies between spacecraft subsystems.
-
-### Key learning
-
-A threat framework helps organise questions and identify areas requiring investigation.
-
-It does not establish that a particular technique was used against a real system.
-
-Similarly, identifying a plausible attack path is not the same as demonstrating that a vulnerability exists.
-
-For future NULL SECTOR work, I want to apply SPARTA to a defined reference architecture and clearly distinguish hypothetical threats from verified findings.
-
-## 10 — Connections to Digital Forensics
-
-The course also prompted me to consider how digital-forensic principles might apply to space systems.
-
-A terrestrial investigation may involve endpoint logs, disk images, network captures, and memory artifacts.
-
-A space-system investigation might also depend on:
-
-- Ground-station records.
-- Command histories.
-- Spacecraft telemetry.
-- Mission operations logs.
-- Communications metadata.
-- Software-update records.
-- Engineering documentation.
-- Orbital context.
-
-The availability and reliability of these sources would vary by mission.
-
-### Key learning
-
-A meaningful investigation must test competing explanations.
-
-Unexpected spacecraft behaviour could result from equipment faults, software errors, environmental effects, operational changes, inaccurate data, or malicious activity.
-
-A cybersecurity conclusion would require evidence capable of distinguishing those possibilities.
-
-The course reinforced the importance of source attribution, careful interpretation, and avoiding unsupported claims.
-
-Detailed evidence handling and source-specific analysis are addressed in the separate Research archive.
-
-## 11 — Main Learning Takeaways
-
-The most important lessons I am taking forward are:
-
-### Satellite cybersecurity is a systems problem
-
-The spacecraft, communications infrastructure, ground systems, and operational processes form a connected security environment.
-
-### Engineering constraints influence security
-
-Power, reliability, mission lifetime, and maintenance limitations affect the controls that can realistically be deployed.
-
-### Orbital information provides context
-
-Orbital data helps explain movement and communications opportunities, but it is not direct evidence of a cybersecurity event.
-
-### Communications protections have different roles
-
-Signal processing, encryption, authentication, command validation, and interference resilience address distinct problems.
-
-### Threat frameworks require evidence
-
-SPARTA can structure an investigation, but the presence of a technique in a framework does not demonstrate that it occurred.
-
-### Guided training is a distinct milestone
-
-Following Hack the Orbit through the instructor's walkthrough was a learning activity. Independent challenge solutions or research findings would require separate evidence.
-
-These are course-related takeaways, not claims of independently validated spacecraft security findings.
-
-## 12 — Next Learning and Research Goals
-
-The course has provided a foundation for further work.
-
-Areas I want to explore include:
-
-- **Orbital data analysis:** Independently acquire and preserve a public dataset, then document a controlled propagation exercise.
-- **Satellite OSINT:** Develop a repeatable workflow for source attribution and evidence preservation.
-- **Communications fundamentals:** Study modulation and demodulation using generated or appropriately authorised sample signals.
-- **Embedded security:** Explore firmware analysis using legally obtained lab images.
-- **Space-system threat modelling:** Apply SPARTA to a fictional or openly documented reference architecture.
-- **Digital-forensic methodology:** Develop clear records for collection methods, timestamps, hashes, processing steps, and limitations.
-
-These are proposed activities, not completed investigations.
-
-Any future results will be documented in Research or Field Notes according to the type of work performed.
-
-## 13 — Final Reflection
-
-Completing Satellite Cybersecurity Foundations broadened my understanding of how cybersecurity applies outside conventional IT environments.
-
-The strongest connection across the course was between **engineering context and security analysis**.
-
-Orbital mechanics helps explain operational constraints. Communications engineering helps explain how information moves between systems. Embedded computing introduces reliability and software-integrity concerns. Threat modelling identifies areas that deserve scrutiny.
-
-The course also reinforced the difference between understanding a technical method and independently demonstrating it.
-
-For NULL SECTOR, that distinction shapes how I document progress:
-
-- **Learning** records completed training and the concepts studied.
-- **Field Notes** explains individual technical concepts and documents appropriately classified activities.
-- **Research** examines specific questions using attributed sources, methods, and evidence.
-
-The course is a completed learning milestone. Independent research and practical work will be documented separately as those activities occur.
-
-## Course Completion
-
-| Item | Record |
-| --- | --- |
-| Course | Satellite Cybersecurity Foundations |
-| Instructor | Angelina Tsuboi |
-| Platform | Udemy |
-| Course structure | 3 sections, 14 lectures |
-| Duration | 5 hours 17 minutes |
-| Learning status | Completed |
-| Hack the Orbit | Followed instructor walkthrough |
-| Professional certification | Not applicable |
-| Independent satellite security testing | Not claimed |
-
-Completing this Udemy course is **not** presented as earning a professional cybersecurity certification.
-
-## References and Further Reading
-
-The following sources support the learning topics discussed here. They are not evidence of independent experiments conducted for this article.
-
-- [Satellite Cybersecurity Foundations — Udemy](https://www.udemy.com/course/satellite-cybersecurity/)
-- [CelesTrak](https://celestrak.org/)
-- [NASA — Basics of Space Flight](https://science.nasa.gov/learn/basics-of-space-flight/)
-- [NASA — Small Spacecraft Systems Virtual Institute](https://www.nasa.gov/smallsat-institute/)
-- [SPARTA — Space Attack Research and Tactic Analysis](https://sparta.aerospace.org/)
-
----
-
-*NULL SECTOR / Learning Archive / NS-LRN-002*
+Completing **Satellite Cybersecurity Foundations** gave me a useful foundation for asking better questions about space systems. It was a completed Udemy course, including an instructor-guided workshop, **not a professional cybersecurity certification** or an independent spacecraft security assessment.

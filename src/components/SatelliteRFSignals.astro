@@ -1,0 +1,202 @@
+---
+/**
+ * NULL SECTOR — conceptual RF waveform teaching aid.
+ * Synthetic samples only; no receiver, transmission, decoding or live RF data.
+ */
+---
+
+<figure class="ns-rf" data-ns-rf aria-labelledby="ns-rf-title">
+  <header class="ns-rf-head">
+    <div>
+      <span class="ns-rf-kicker">COMMUNICATIONS / 03</span>
+      <h3 id="ns-rf-title">What changes on the radio link?</h3>
+    </div>
+    <span class="ns-rf-tag">SYNTHETIC SIGNALS</span>
+  </header>
+
+  <p class="ns-rf-intro">
+    Compare a carrier, an illustrative phase-modulated signal and a carrier affected by
+    interference. These traces show signal behaviour, not the security or authenticity
+    of the information carried.
+  </p>
+
+  <div class="ns-rf-controls" role="group" aria-label="Choose a waveform">
+    <button type="button" class="is-selected" data-ns-mode="carrier" aria-pressed="true">Carrier</button>
+    <button type="button" data-ns-mode="bpsk" aria-pressed="false">Phase modulation</button>
+    <button type="button" data-ns-mode="interference" aria-pressed="false">Interference</button>
+  </div>
+
+  <div class="ns-rf-screen">
+    <div class="ns-rf-screen-head">
+      <span data-ns-trace-label>CARRIER / REFERENCE</span>
+      <span>AMPLITUDE / ARBITRARY UNITS</span>
+    </div>
+    <svg viewBox="0 0 640 214" role="img" aria-label="Synthetic sinusoidal carrier waveform">
+      <g class="ns-rf-grid" aria-hidden="true">
+        {Array.from({ length: 19 }, (_, i) => <line x1={32 + i * 32} y1="0" x2={32 + i * 32} y2="214" />)}
+        {Array.from({ length: 8 }, (_, i) => <line x1="0" y1={24 + i * 24} x2="640" y2={24 + i * 24} />)}
+      </g>
+      <line class="ns-rf-zero" x1="18" y1="107" x2="622" y2="107" stroke-dasharray="4 5" />
+      <g data-ns-bit-guides class="ns-rf-bit-guides" opacity="0"></g>
+      <path data-ns-wave d="" class="ns-rf-wave" fill="none" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round" />
+      <text class="ns-rf-axis-label" x="18" y="202" font-size="10" font-family="monospace">ILLUSTRATIVE TIME →</text>
+    </svg>
+  </div>
+
+  <div class="ns-rf-reading" aria-live="polite" aria-atomic="true">
+    <strong data-ns-reading-title>Carrier — no data encoded in this example</strong>
+    <p data-ns-reading-text>A regular sinusoid is a useful starting point. A receiver may detect this energy, but the waveform alone says nothing about whether a command is authorised.</p>
+  </div>
+
+  <figcaption>
+    Educational simulation, not captured satellite traffic or a calibrated RF measurement.
+    The phase-modulation view uses simplified BPSK-like phase reversals; the interference
+    view adds a second synthetic tone. Real links involve filtering, coding, noise,
+    synchronisation and mission-specific protocols. Signal reception does not imply
+    decryption, authentication or permission to execute a command.
+  </figcaption>
+</figure>
+
+<script>
+  type RfMode = 'carrier' | 'bpsk' | 'interference';
+
+  const rfDescriptions: Record<RfMode, { label: string; title: string; text: string }> = {
+    carrier: {
+      label: 'CARRIER / REFERENCE',
+      title: 'Carrier — no data encoded in this example',
+      text: 'A regular sinusoid is a useful starting point. A receiver may detect this energy, but the waveform alone says nothing about whether a command is authorised.',
+    },
+    bpsk: {
+      label: 'PHASE MODULATION / ILLUSTRATIVE BPSK',
+      title: 'Phase modulation — changes can represent symbols',
+      text: 'In this simplified BPSK-like example, selected symbol boundaries reverse the carrier phase. Real receivers must recover timing and symbols before any higher-layer message can be interpreted.',
+    },
+    interference: {
+      label: 'CARRIER + INTERFERING TONE',
+      title: 'Interference — the received waveform is distorted',
+      text: 'An additional signal changes the observed trace and may reduce reception quality. This is not a jamming-power calculation: actual impact depends on the receiver, frequencies, power, bandwidth and coding.',
+    },
+  };
+
+  function initNsRfSignals() {
+    document.querySelectorAll<HTMLElement>('[data-ns-rf]').forEach((root) => {
+      if (root.dataset.initialized === 'true') return;
+      const wave = root.querySelector<SVGPathElement>('[data-ns-wave]');
+      const guides = root.querySelector<SVGGElement>('[data-ns-bit-guides]');
+      const label = root.querySelector<HTMLElement>('[data-ns-trace-label]');
+      const title = root.querySelector<HTMLElement>('[data-ns-reading-title]');
+      const text = root.querySelector<HTMLElement>('[data-ns-reading-text]');
+      const svg = root.querySelector<SVGSVGElement>('svg');
+      const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-ns-mode]'));
+      if (!wave || !guides || !label || !title || !text || !svg || !buttons.length) return;
+      root.dataset.initialized = 'true';
+
+      const bits = [1, 1, -1, -1, 1, -1, 1, 1];
+      const left = 18, right = 622, mid = 107, width = right - left;
+
+      const draw = (mode: RfMode) => {
+        const samples = 900;
+        const commands: string[] = [];
+        for (let i = 0; i <= samples; i++) {
+          const u = i / samples;
+          const phase = 2 * Math.PI * 22 * u;
+          const bitIndex = Math.min(bits.length - 1, Math.floor(u * bits.length));
+          const signal = mode === 'bpsk'
+            ? bits[bitIndex] * Math.sin(phase)
+            : mode === 'interference'
+              ? 0.72 * Math.sin(phase) + 0.4 * Math.sin(2 * Math.PI * 28.5 * u + 0.8)
+              : Math.sin(phase);
+          const x = left + width * u;
+          const y = mid - 54 * signal;
+          commands.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(2)} ${y.toFixed(2)}`);
+        }
+        wave.setAttribute('d', commands.join(' '));
+        guides.replaceChildren();
+        if (mode === 'bpsk') {
+          const ns = 'http://www.w3.org/2000/svg';
+          for (let i = 1; i < bits.length; i++) {
+            const x = left + width * i / bits.length;
+            const line = document.createElementNS(ns, 'line');
+            line.setAttribute('x1', String(x));
+            line.setAttribute('x2', String(x));
+            line.setAttribute('y1', '20');
+            line.setAttribute('y2', '187');
+            line.setAttribute('stroke-dasharray', '3 6');
+            line.setAttribute('stroke-width', '1');
+            guides.appendChild(line);
+          }
+        }
+        guides.setAttribute('opacity', mode === 'bpsk' ? '0.7' : '0');
+        const description = rfDescriptions[mode];
+        label.textContent = description.label;
+        title.textContent = description.title;
+        text.textContent = description.text;
+        svg.setAttribute('aria-label', `${description.title}. Synthetic signal trace.`);
+        buttons.forEach((button) => {
+          const selected = button.dataset.nsMode === mode;
+          button.classList.toggle('is-selected', selected);
+          button.setAttribute('aria-pressed', String(selected));
+        });
+      };
+
+      buttons.forEach((button) => button.addEventListener('click', () => {
+        const mode = button.dataset.nsMode as RfMode | undefined;
+        if (mode && mode in rfDescriptions) draw(mode);
+      }));
+      draw('carrier');
+    });
+  }
+
+  document.addEventListener('astro:page-load', initNsRfSignals);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNsRfSignals, { once: true });
+  } else {
+    initNsRfSignals();
+  }
+</script>
+
+<style>
+  .ns-rf {
+    --ns-green: var(--green, #47d7a0);
+    --ns-blue: var(--blue, #66a9e5);
+    --ns-line: var(--border-strong, #30434d);
+    --ns-muted: var(--text-muted, #b5c4d0);
+    --ns-dim: var(--text-dim, #91a6b5);
+    margin: 2.5rem 0;
+    padding: 1.35rem;
+    border: 1px solid var(--ns-line);
+    background: var(--bg-raised, #101820);
+    color: var(--text, #e4edf3);
+    min-width: 0;
+  }
+  .ns-rf-head { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+  .ns-rf-kicker, .ns-rf-tag, .ns-rf-screen-head { font: 600 .66rem/1.5 var(--font-mono, monospace); letter-spacing: .08em; }
+  .ns-rf-kicker { color: var(--ns-blue); }
+  .ns-rf-tag { padding: .35rem .55rem; border: 1px solid var(--ns-line); color: var(--ns-dim); }
+  .ns-rf h3 { margin: .45rem 0 0; color: var(--text, #e4edf3); font-size: clamp(1.15rem, 2vw, 1.5rem); line-height: 1.35; letter-spacing: -.025em; }
+  .ns-rf-intro { max-width: 70ch; margin: 1rem 0 1.35rem; color: var(--ns-muted); font-size: .88rem; line-height: 1.75; }
+  .ns-rf-controls { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+  .ns-rf-controls button { min-height: 44px; cursor: pointer; padding: .65rem .85rem; border: 1px solid var(--ns-line); background: var(--bg, #0b1219); color: var(--ns-muted); font: 600 .75rem/1.4 var(--font-mono, monospace); transition: border-color .15s ease, color .15s ease, background .15s ease; }
+  .ns-rf-controls button:hover { border-color: var(--ns-blue); color: var(--text, #e4edf3); }
+  .ns-rf-controls button:focus-visible { outline: 2px solid var(--ns-green); outline-offset: 3px; }
+  .ns-rf-controls button.is-selected { border-color: var(--ns-green); color: var(--ns-green); background: var(--bg-panel, #17232d); }
+  .ns-rf-screen { overflow: hidden; border: 1px solid var(--ns-line); background: var(--bg-inset, #0b141c); }
+  .ns-rf-screen-head { display: flex; justify-content: space-between; gap: .5rem; flex-wrap: wrap; padding: .65rem .85rem; border-bottom: 1px solid var(--ns-line); color: var(--ns-dim); }
+  .ns-rf-screen-head span:first-child { color: var(--ns-blue); }
+  .ns-rf-screen svg { display: block; width: 100%; height: auto; }
+  .ns-rf-grid line { stroke: var(--ns-line); stroke-width: .7; opacity: .6; }
+  .ns-rf-zero { stroke: var(--ns-dim); stroke-width: 1; opacity: .5; }
+  .ns-rf-bit-guides line { stroke: var(--ns-blue); }
+  .ns-rf-wave { stroke: var(--ns-green); }
+  .ns-rf-axis-label { fill: var(--ns-dim); }
+  .ns-rf-reading { margin-top: 1.15rem; min-height: 6rem; }
+  .ns-rf-reading strong { display: block; color: var(--text, #e4edf3); font-size: .93rem; line-height: 1.5; }
+  .ns-rf-reading p { margin: .45rem 0 0; color: var(--ns-muted); font-size: .86rem; line-height: 1.75; }
+  .ns-rf figcaption { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--ns-line); color: var(--ns-dim); font-size: .73rem; line-height: 1.7; }
+  @media (max-width: 540px) {
+    .ns-rf { padding: 1rem; }
+    .ns-rf-controls button { flex: 1 1 auto; }
+    .ns-rf-screen-head span:last-child { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { .ns-rf-controls button { transition: none; } }
+</style>

@@ -1,0 +1,149 @@
+---
+/**
+ * NULL SECTOR — conceptual satellite command path.
+ * Native disclosure controls; no client-side JavaScript or operational data.
+ */
+const stages = [
+  {
+    id: '01', title: 'Mission operator', role: 'Requests an action',
+    detail: 'An operator initiates a command through a mission-control workflow. Before the command leaves the ground environment, the system needs to establish who requested it and whether that person is permitted to perform the action.',
+    risk: 'A compromised account or excessive privileges could allow an unauthorised person to request commands.',
+    defence: 'Strong operator authentication, least-privilege roles, approval workflows and auditable command histories.',
+  },
+  {
+    id: '02', title: 'Ground command system', role: 'Prepares and routes the command',
+    detail: 'Ground software may validate, format, queue and route instructions for transmission. This is a critical trust boundary: a legitimate operator request still depends on the integrity of the software and infrastructure processing it.',
+    risk: 'A compromised service or modified command queue could change what is transmitted.',
+    defence: 'System hardening, integrity checks, change control, monitoring and separation of duties.',
+  },
+  {
+    id: '03', title: 'Communications link', role: 'Carries the command',
+    detail: 'The uplink transports the message toward the spacecraft. Receiving a radio signal does not prove that the message is authentic or current, and encrypting a message does not prevent interference with the radio channel.',
+    risk: 'Interference may affect availability; spoofed or replayed messages may threaten command trust if safeguards are inadequate.',
+    defence: 'Message authentication, integrity protection, freshness checks and operational measures for link resilience.',
+  },
+  {
+    id: '04', title: 'Spacecraft', role: 'Checks and executes the command',
+    detail: 'Onboard software needs to decide whether the received instruction is valid, authorised, timely and safe for the spacecraft to carry out. A correctly decoded message should not automatically become an executable command.',
+    risk: 'Missing command validation or replay protection could permit an unsafe or unauthorised action.',
+    defence: 'Onboard authentication and authorisation checks, anti-replay mechanisms, command validation and safe-state handling.',
+  },
+];
+---
+
+<figure class="ns-command-path" aria-labelledby="ns-command-title">
+  <header class="ns-heading">
+    <div>
+      <span class="ns-eyebrow">COMMAND SECURITY / 04</span>
+      <h3 id="ns-command-title">Where does a satellite command become trusted?</h3>
+    </div>
+    <span class="ns-tag">CONCEPTUAL MODEL</span>
+  </header>
+
+  <p class="ns-intro">Follow a simplified command from mission control to the spacecraft. Open a stage to explore the trust decision, potential threat and defensive consideration.</p>
+
+  <ol class="ns-flow" aria-label="Satellite command path">
+    {stages.map((stage) => (
+      <li class="ns-flow-part">
+        <div class="ns-node">
+          <span class="ns-node-id">{stage.id} / STAGE</span>
+          <strong>{stage.title}</strong>
+          <span class="ns-node-role">{stage.role}</span>
+        </div>
+      </li>
+    ))}
+  </ol>
+
+  <div class="ns-details" aria-label="Explore command-path trust boundaries">
+    {stages.map((stage) => (
+      <details>
+        <summary>
+          <span class="ns-summary-number">{stage.id}</span>
+          <span>{stage.title}</span>
+          <span class="ns-expand" aria-hidden="true">+</span>
+        </summary>
+        <div class="ns-detail-content">
+          <p>{stage.detail}</p>
+          <div class="ns-pair">
+            <div class="ns-risk">
+              <span class="ns-label">POTENTIAL THREAT</span>
+              <p>{stage.risk}</p>
+            </div>
+            <div class="ns-defence">
+              <span class="ns-label">SECURITY CONSIDERATION</span>
+              <p>{stage.defence}</p>
+            </div>
+          </div>
+        </div>
+      </details>
+    ))}
+  </div>
+  <figcaption>Illustrative command path only. Actual spacecraft command architectures and controls vary by mission. This is not an assessment of an operational system.</figcaption>
+</figure>
+
+<style>
+  .ns-command-path {
+    --ns-green: var(--green, #47d7a0);
+    --ns-blue: var(--blue, #66a9e5);
+    --ns-amber: #e4ad68;
+    --ns-line: var(--border, #30434d);
+    --ns-muted: var(--text-muted, #b5c4d0);
+    --ns-dim: var(--text-dim, #91a6b5);
+    --ns-text: var(--text, #e4edf3);
+    margin: 2.5rem 0;
+    padding: 1.35rem;
+    border: 1px solid var(--ns-line);
+    border-radius: 14px;
+    background: var(--bg-raised, #101820);
+    color: var(--ns-text);
+    font-family: inherit;
+  }
+  .ns-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+  .ns-eyebrow, .ns-tag, .ns-label, .ns-node-id, .ns-summary-number {
+    font-family: var(--font-mono, monospace);
+    font-size: .66rem;
+    letter-spacing: .08em;
+    font-weight: 700;
+  }
+  .ns-eyebrow, .ns-summary-number { color: var(--ns-blue); }
+  .ns-tag { color: var(--ns-dim); border: 1px solid var(--ns-line); border-radius: 4px; padding: .35rem .5rem; white-space: nowrap; }
+  .ns-heading h3 { color: var(--ns-text); font-size: 1.15rem; line-height: 1.4; margin: .45rem 0 0; }
+  .ns-intro { color: var(--ns-muted); font-size: .88rem; line-height: 1.7; margin: 1rem 0 1.35rem; }
+
+  .ns-flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.1rem; padding: 0; margin: 0 0 1.4rem; list-style: none; }
+  .ns-flow-part { min-width: 0; position: relative; }
+  .ns-flow-part:not(:last-child)::after { content: '→'; position: absolute; top: 50%; right: -.85rem; transform: translateY(-50%); color: var(--ns-green); font: 700 1rem var(--font-mono, monospace); }
+  .ns-node { min-height: 100%; display: flex; flex-direction: column; gap: .4rem; padding: .85rem .75rem; border: 1px solid var(--ns-line); border-radius: 8px; background: #17232d; }
+  .ns-node-id { color: var(--ns-green); }
+  .ns-node strong { color: var(--ns-text); font-size: .8rem; line-height: 1.4; }
+  .ns-node-role { color: var(--ns-muted); font-size: .72rem; line-height: 1.5; }
+
+  .ns-details { display: grid; gap: .5rem; }
+  .ns-details details { border: 1px solid var(--ns-line); border-radius: 7px; background: rgba(255,255,255,.02); overflow: hidden; }
+  .ns-details summary { cursor: pointer; display: flex; align-items: center; gap: .75rem; padding: .85rem .9rem; list-style: none; font-size: .85rem; font-weight: 600; color: var(--ns-text); }
+  .ns-details summary::-webkit-details-marker { display: none; }
+  .ns-details summary::marker { content: ''; }
+  .ns-details summary:hover { background: rgba(102,169,229,.055); }
+  .ns-details summary:focus-visible { outline: 2px solid var(--ns-green); outline-offset: -3px; }
+  .ns-expand { margin-left: auto; color: var(--ns-green); font-size: 1.1rem; line-height: 1; }
+  .ns-details details[open] .ns-expand { transform: rotate(45deg); }
+  .ns-detail-content { padding: 0 .9rem 1rem; border-top: 1px solid var(--ns-line); }
+  .ns-detail-content > p { color: var(--ns-muted); font-size: .86rem; line-height: 1.7; margin: .85rem 0 1rem; }
+  .ns-pair { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+  .ns-pair > div { padding: .85rem; border: 1px solid var(--ns-line); border-radius: 6px; background: rgba(255,255,255,.015); }
+  .ns-risk .ns-label { color: var(--ns-amber); }
+  .ns-defence .ns-label { color: var(--ns-green); }
+  .ns-pair p { color: var(--ns-muted); font-size: .79rem; line-height: 1.65; margin: .45rem 0 0; }
+  .ns-command-path figcaption { color: var(--ns-dim); font-size: .73rem; line-height: 1.6; margin-top: 1rem; }
+  @media (max-width: 680px) {
+    .ns-command-path { padding: 1rem; }
+    .ns-tag { display: none; }
+    .ns-flow { grid-template-columns: 1fr; gap: 1rem; }
+    .ns-flow-part:not(:last-child)::after { content: '↓'; top: auto; bottom: -1rem; right: 50%; transform: translateX(50%); }
+    .ns-node { min-height: auto; }
+    .ns-pair { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .ns-expand { transition: transform .15s ease; }
+  }
+</style>

@@ -1,0 +1,190 @@
+---
+/**
+ * NULL SECTOR — conceptual satellite-system architecture.
+ * Uses the site's design tokens and native, keyboard-accessible disclosures.
+ * No client-side JavaScript, dependencies, or operational mission data.
+ */
+const segments = [
+  {
+    id: "space", number: "01", name: "Space segment", label: "Spacecraft & onboard systems",
+    description: "The spacecraft hosts flight software, command handling, telemetry generation and mission-specific subsystems. Its ability to recover from faults or receive updates depends on mission design and available contact opportunities.",
+    boundary: "Commands arriving from the communications system must be checked before they affect onboard operations.",
+    question: "What prevents a correctly received but unauthorised command from being executed?",
+  },
+  {
+    id: "link", number: "02", name: "Communications segment", label: "Uplink & downlink",
+    description: "Radio and supporting communications infrastructure carry commands toward the spacecraft and telemetry back to the ground. Physical signal reception, message integrity and sender authorisation are separate concerns.",
+    boundary: "The receiver must not treat a decodable signal as proof of a trusted message.",
+    question: "How are message origin, integrity and freshness established despite possible interference?",
+  },
+  {
+    id: "ground", number: "03", name: "Ground segment", label: "Stations, operators & services",
+    description: "Mission-control applications, operator identities, ground stations, scheduling systems and data-processing services form the terrestrial side of the mission. Their compromise can affect operations without direct access to spacecraft hardware.",
+    boundary: "Operator requests pass through identities, software services and command preparation workflows.",
+    question: "Who can prepare, approve and transmit commands, and where are those actions recorded?",
+  },
+];
+---
+
+<figure class="ns-architecture" aria-labelledby="ns-architecture-title">
+  <div class="ns-heading">
+    <div>
+      <span class="ns-eyebrow">SYSTEM MAP / 01</span>
+      <h3 id="ns-architecture-title">A satellite mission has more than one security boundary</h3>
+    </div>
+    <span class="ns-tag">CONCEPTUAL</span>
+  </div>
+
+  <p class="ns-intro">The spacecraft is one part of a larger system. Follow the two-way communications path, then expand each segment to see what needs protecting.</p>
+
+  <div class="ns-map" role="img" aria-label="Conceptual architecture: a spacecraft communicates over an uplink and downlink with a ground station, which connects to mission control and operator systems.">
+    <div class="ns-space">
+      <span class="ns-zone">SPACE SEGMENT</span>
+      <svg viewBox="0 0 180 100" aria-hidden="true" focusable="false">
+        <g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+          <path d="M89 34 110 13 133 36 112 57Z" class="ns-solar" />
+          <path d="M90 33 70 13 47 36 68 57Z" class="ns-solar" />
+          <rect x="79" y="29" width="24" height="32" rx="3" class="ns-satellite-core" />
+          <path d="M91 29V17M84 17h14M91 61v10M91 71l-9 11M91 71l9 11M62 29l17 13M103 42l19-13" />
+          <path d="M54 32h20M110 32h16M54 42h20M110 42h16" stroke-opacity=".5" />
+        </g>
+      </svg>
+      <strong>Spacecraft</strong>
+      <span class="ns-sub">Flight computer · payload · subsystems</span>
+    </div>
+
+    <div class="ns-channel">
+      <span class="ns-zone">COMMUNICATIONS</span>
+      <div class="ns-link-lines" aria-hidden="true">
+        <span class="ns-uplink">↑ UPLINK: COMMANDS</span>
+        <span class="ns-downlink">↓ DOWNLINK: TELEMETRY</span>
+      </div>
+      <span class="ns-sub">RF link / supporting network</span>
+    </div>
+
+    <div class="ns-ground">
+      <span class="ns-zone">GROUND SEGMENT</span>
+      <div class="ns-ground-grid">
+        <div class="ns-station">
+          <svg viewBox="0 0 80 65" aria-hidden="true" focusable="false">
+            <g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <path d="M15 15q18 35 49 0M40 35v24M23 59h34M40 35 59 18M56 13q12 7 8 19M61 7q18 10 11 31" />
+            </g>
+          </svg>
+          <strong>Ground station</strong>
+          <span>Transmit / receive</span>
+        </div>
+        <span class="ns-internal-arrow" aria-hidden="true">⇄</span>
+        <div class="ns-station">
+          <svg viewBox="0 0 80 65" aria-hidden="true" focusable="false">
+            <g fill="none" stroke="currentColor" stroke-width="2.5">
+              <rect x="12" y="9" width="56" height="39" rx="3" />
+              <path d="M28 57h24M40 48v9M22 21h16M22 29h30M22 37h23" />
+            </g>
+          </svg>
+          <strong>Mission control</strong>
+          <span>Operators / services</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ns-details" aria-label="Explore the architecture's security boundaries">
+    {segments.map((segment) => (
+      <details>
+        <summary>
+          <span class="ns-index">{segment.number}</span>
+          <span>{segment.name}</span>
+          <span class="ns-expand" aria-hidden="true">+</span>
+        </summary>
+        <div class="ns-detail-content">
+          <p>{segment.description}</p>
+          <div class="ns-detail-grid">
+            <div>
+              <span class="ns-label">TRUST BOUNDARY</span>
+              <p>{segment.boundary}</p>
+            </div>
+            <div>
+              <span class="ns-label">QUESTION TO ASK</span>
+              <p>{segment.question}</p>
+            </div>
+          </div>
+        </div>
+      </details>
+    ))}
+  </div>
+
+  <figcaption>Illustrative architecture, not a diagram of a specific mission. Actual segment boundaries, communications paths and security controls vary by spacecraft and operator.</figcaption>
+</figure>
+
+<style>
+  .ns-architecture {
+    --ns-green: var(--green, #47d7a0);
+    --ns-blue: var(--blue, #66a9e5);
+    --ns-text: var(--text, #e4edf3);
+    --ns-muted: var(--text-muted, #b5c4d0);
+    --ns-dim: var(--text-dim, #8195a3);
+    --ns-border: var(--border-strong, #30434d);
+    --ns-surface: var(--bg-raised, #17232d);
+    --ns-inset: var(--bg-inset, #101820);
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    margin: 2.5rem 0;
+    padding: clamp(1rem, 2.5vw, 1.5rem);
+    border: 1px solid var(--ns-border);
+    border-radius: 8px;
+    background: var(--ns-surface);
+    color: var(--ns-text);
+    font-family: inherit;
+  }
+  .ns-architecture *, .ns-architecture *::before, .ns-architecture *::after { box-sizing: border-box; }
+  .ns-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+  .ns-eyebrow, .ns-tag, .ns-zone, .ns-label { font-family: var(--font-mono, monospace); font-size: .66rem; letter-spacing: .085em; font-weight: 700; }
+  .ns-eyebrow, .ns-label { color: var(--ns-blue); }
+  .ns-zone { color: var(--ns-green); }
+  .ns-tag { flex-shrink: 0; color: var(--ns-dim); border: 1px solid var(--ns-border); padding: .35rem .55rem; border-radius: 3px; }
+  .ns-heading h3 { color: var(--ns-text); font-size: clamp(1rem, 2.2vw, 1.2rem); line-height: 1.4; letter-spacing: -.02em; margin: .5rem 0 0; padding: 0; border: 0; }
+  .ns-intro { color: var(--ns-muted); font-size: .88rem; line-height: 1.7; margin: 1rem 0 1.35rem; }
+  .ns-map { display: grid; gap: 0; max-width: 570px; margin: 0 auto 1.5rem; text-align: center; }
+  .ns-space, .ns-ground { display: flex; align-items: center; flex-direction: column; min-width: 0; padding: 1rem; border: 1px solid var(--ns-border); border-radius: 6px; background: var(--ns-inset); }
+  .ns-space svg { width: min(160px, 100%); height: 90px; color: var(--ns-blue); margin: .25rem auto; }
+  .ns-solar { fill: color-mix(in srgb, var(--ns-blue) 13%, transparent); }
+  .ns-satellite-core { fill: var(--ns-surface); }
+  .ns-space strong { font-size: .92rem; }
+  .ns-sub { color: var(--ns-muted); font-size: .72rem; line-height: 1.5; margin-top: .35rem; }
+  .ns-channel { display: flex; flex-direction: column; align-items: center; padding: .85rem 0; }
+  .ns-link-lines { display: flex; justify-content: center; gap: clamp(.75rem, 5vw, 2rem); margin: .65rem 0; font: 600 .67rem/1.5 var(--font-mono, monospace); }
+  .ns-link-lines span { max-width: 145px; padding: .55rem .6rem; border-left: 2px solid currentColor; }
+  .ns-uplink { color: var(--ns-green); }
+  .ns-downlink { color: var(--ns-blue); }
+  .ns-ground-grid { display: flex; align-items: center; justify-content: center; gap: 1rem; width: 100%; margin: .65rem 0 .25rem; }
+  .ns-station { display: flex; flex: 1; min-width: 0; flex-direction: column; align-items: center; gap: .3rem; }
+  .ns-station svg { width: 75px; max-width: 100%; height: 60px; color: var(--ns-blue); }
+  .ns-station strong { font-size: .8rem; }
+  .ns-station span { color: var(--ns-muted); font-size: .7rem; }
+  .ns-internal-arrow { color: var(--ns-green); font-size: 1.3rem; }
+  .ns-details { display: grid; gap: .5rem; }
+  .ns-details details { min-width: 0; border: 1px solid var(--ns-border); border-radius: 5px; background: var(--ns-inset); }
+  .ns-details summary { display: flex; align-items: center; gap: .75rem; min-height: 44px; padding: .8rem .9rem; list-style: none; cursor: pointer; font-size: .85rem; font-weight: 600; color: var(--ns-text); }
+  .ns-details summary::-webkit-details-marker { display: none; }
+  .ns-details summary:focus-visible { outline: 2px solid var(--ns-green); outline-offset: 3px; }
+  .ns-index { font-family: var(--font-mono, monospace); color: var(--ns-green); font-size: .7rem; }
+  .ns-expand { margin-left: auto; color: var(--ns-green); font-size: 1.1rem; }
+  .ns-details details[open] .ns-expand { transform: rotate(45deg); }
+  .ns-detail-content { padding: 0 .9rem 1rem; border-top: 1px solid var(--ns-border); }
+  .ns-detail-content > p { font-size: .86rem; line-height: 1.7; color: var(--ns-muted); margin: .85rem 0 1rem; }
+  .ns-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+  .ns-detail-grid > div { min-width: 0; padding: .85rem; border: 1px solid var(--ns-border); border-radius: 4px; }
+  .ns-detail-grid p { font-size: .79rem; line-height: 1.65; color: var(--ns-muted); margin: .45rem 0 0; }
+  .ns-architecture figcaption { color: var(--ns-dim); font-size: .73rem; line-height: 1.6; margin-top: 1rem; }
+  @media (max-width: 560px) {
+    .ns-architecture { padding: 1rem; }
+    .ns-tag { display: none; }
+    .ns-detail-grid { grid-template-columns: 1fr; }
+    .ns-ground-grid { gap: .3rem; }
+    .ns-station strong { font-size: .72rem; }
+    .ns-link-lines { gap: .5rem; font-size: .6rem; }
+  }
+  @media (prefers-reduced-motion: no-preference) { .ns-expand { transition: transform .15s ease; } }
+</style>
