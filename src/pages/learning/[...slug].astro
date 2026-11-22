@@ -1,618 +1,315 @@
 ---
-
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import SatelliteCommandPath from "../../components/SatelliteCommandPath.astro";
 import SatelliteArchitecture from "../../components/SatelliteArchitecture.astro";
 import SatelliteOrbitalVisibility from "../../components/SatelliteOrbitalVisibility.astro";
 import SatelliteRFSignals from "../../components/SatelliteRFSignals.astro";
-
+import SatelliteSpartaThreatModel from "../../components/SatelliteSpartaThreatModel.astro";
+import SatelliteForensicsTimeline from "../../components/SatelliteForensicsTimeline.astro";
 import {
-
   getCollection,
-
   render,
-
   type CollectionEntry,
-
 } from "astro:content";
-
 interface Props {
-
   entry: CollectionEntry<"learning">;
-
 }
-
 export async function getStaticPaths() {
-
   const entries = await getCollection(
-
     "learning",
-
     ({ data }) => !data.draft
-
   );
-
   return entries.map((entry) => ({
-
     params: { slug: entry.id },
-
     props: { entry },
-
   }));
-
 }
-
 const { entry } = Astro.props;
-
 const { Content, headings } = await render(entry);
-
 const {
-
   title,
-
   description,
-
   provider,
-
   category,
-
   status,
-
   certificationStatus,
-
   publishedAt,
-
   completedAt,
-
   updatedAt,
-
   topics,
-
   skills,
-
   references,
-
   credentialUrl,
-
   certificate,
-
 } = entry.data;
-
 const categoryLabels: Record<string, string> = {
-
   "certification-training": "CERTIFICATION TRAINING",
-
   "learning-path": "LEARNING PATH",
-
   course: "COURSE",
-
   lab: "PRACTICAL LAB",
-
 };
-
 const statusLabels: Record<string, string> = {
-
   planned: "PLANNED",
-
   "in-progress": "IN PROGRESS",
-
   completed: "COMPLETED",
-
 };
-
 const certificationLabels: Record<string, string> = {
-
   "not-applicable": "NOT APPLICABLE",
-
   "not-attempted": "NOT ATTEMPTED",
-
   preparing: "PREPARING",
-
   earned: "EARNED",
-
 };
-
 const certificateTypeLabels: Record<string, string> = {
-
   "professional-certification": "PROFESSIONAL CERTIFICATION",
-
   "course-completion": "COURSE COMPLETION",
-
   "training-award": "TRAINING AWARD",
-
 };
-
 const categoryLabel = categoryLabels[category] ?? category;
-
 const statusLabel = statusLabels[status] ?? status;
-
 const certificationLabel =
-
   certificationLabels[certificationStatus] ?? certificationStatus;
-
 const dateFormatter = new Intl.DateTimeFormat("en-GB", {
-
   day: "2-digit",
-
   month: "short",
-
   year: "numeric",
-
   timeZone: "UTC",
-
 });
-
 const formatDate = (date: Date) => dateFormatter.format(date);
-
 const chapters = headings.filter(
-
   (heading) => heading.depth === 2
-
 );
-
 const hasTechnicalIndex =
-
   topics.length > 0 || skills.length > 0;
-
 const certificateTypeLabel = certificate
-
   ? certificateTypeLabels[certificate.type] ?? certificate.type
-
   : "";
-
 const basePath = import.meta.env.BASE_URL;
-
 function withBase(path: string): string {
-
   if (!path.startsWith("/") || path.startsWith("//")) return path;
-
   const base = basePath.endsWith("/") ? basePath : `${basePath}/`;
-
   return `${base}${path.replace(/^\/+/, "")}`;
-
 }
-
 function assetUrl(path: string): string {
-
   return withBase(path);
-
 }
-
 const hasCredentialSection = Boolean(
-
   certificate || credentialUrl
-
 );
-
 ---
-
 <BaseLayout
-
   title={`${title} | Learning | NULL SECTOR`}
-
   description={description}
-
   contentType="article"
-
   publishedTime={publishedAt.toISOString()}
-
   modifiedTime={updatedAt?.toISOString()}
-
 >
-
   <main class="article-shell" id="main-content">
-
     <div class="container">
-
       <nav class="breadcrumb" aria-label="Breadcrumb">
-
         <a href={withBase("/")}>HOME</a>
-
         <span aria-hidden="true">/</span>
-
         <a href={withBase("/learning/")}>LEARNING</a>
-
         <span aria-hidden="true">/</span>
-
         <span aria-current="page">ARTICLE</span>
-
       </nav>
-
     </div>
-
     <header class="article-header">
-
       <div class="container">
-
         <div class="header-meta">
-
           <span class="eyebrow">[ NS / LEARNING RECORD ]</span>
-
           <span class="record-id">
-
             FILE: {entry.id.toUpperCase()}
-
           </span>
-
         </div>
-
         <div class="header-main">
-
           <div class="header-copy">
-
             <span class="article-category">{categoryLabel}</span>
-
             <h1>
-
               {title}<span class="title-cursor">_</span>
-
             </h1>
-
             <p class="article-description">{description}</p>
-
           </div>
-
           <div class="header-symbol" aria-hidden="true">
-
             <span>N</span>
-
             <span>S</span>
-
           </div>
-
         </div>
-
         <div class="article-metadata">
-
           <div class="metadata-item">
-
             <span class="metadata-label">PROVIDER</span>
-
             <span class="metadata-value">{provider}</span>
-
           </div>
-
           <div class="metadata-item">
-
             <span class="metadata-label">LEARNING STATUS</span>
-
             <span
-
               class:list={[
-
                 "metadata-value",
-
                 "status-value",
-
                 `status-${status}`,
-
               ]}
-
             >
-
               <span class="status-square" aria-hidden="true"></span>
-
               {statusLabel}
-
             </span>
-
           </div>
-
           <div class="metadata-item">
-
             <span class="metadata-label">CERTIFICATION</span>
-
             <span
-
               class:list={[
-
                 "metadata-value",
-
                 {
-
                   "credential-earned":
-
                     certificationStatus === "earned",
-
                 },
-
               ]}
-
             >
-
               {certificationLabel}
-
             </span>
-
           </div>
-
           <div class="metadata-item">
-
             <span class="metadata-label">PUBLISHED</span>
-
             <time datetime={publishedAt.toISOString()}>
-
               {formatDate(publishedAt)}
-
             </time>
-
           </div>
-
         </div>
-
       </div>
-
     </header>
-
     <div class="container article-container">
-
       <div
-
         class:list={[
-
           "reading-layout",
-
           { "without-sidebar": chapters.length === 0 },
-
         ]}
-
       >
-
         {
-
           chapters.length > 0 && (
-
             <aside
-
               class="reading-sidebar"
-
               aria-labelledby="chapter-nav-title"
-
             >
-
               <div class="sidebar-sticky">
-
                 <div class="sidebar-panel">
-
                   <div class="sidebar-header">
-
                     <span class="sidebar-eyebrow">
-
                       [ CONTENTS ]
-
                     </span>
-
                     <h2 id="chapter-nav-title">
-
                       Explore the article
-
                       <span class="sidebar-cursor">_</span>
-
                     </h2>
-
                     <p class="sidebar-description">
-
                       Navigate the technical record.
-
                     </p>
-
                   </div>
-
                   <nav
-
                     class="chapter-nav"
-
                     aria-label="Article chapters"
-
                   >
-
                     <ol class="chapter-list">
-
                       {chapters.map((heading, index) => (
-
                         <li>
-
                           <a
-
                             class="chapter-link"
-
                             href={`#${heading.slug}`}
-
                             data-chapter-link={heading.slug}
-
                           >
-
                             <span class="chapter-number">
-
                               {String(index + 1).padStart(2, "0")}
-
                             </span>
-
                             <span class="chapter-title">
-
                               {heading.text}
-
                             </span>
-
                           </a>
-
                         </li>
-
                       ))}
-
                     </ol>
-
                   </nav>
-
                   <div class="reading-progress">
-
                     <div class="progress-heading">
-
                       <span>READING PROGRESS</span>
-
                       <output
-
                         id="reading-percentage"
-
                         aria-label="Reading progress"
-
                       >
-
                         0%
-
                       </output>
-
                     </div>
-
                     <div
-
                       class="progress-track"
-
                       role="progressbar"
-
                       aria-label="Article reading progress"
-
                       aria-valuemin="0"
-
                       aria-valuemax="100"
-
                       aria-valuenow="0"
-
                       id="reading-progress-bar"
-
                     >
-
                       <div
-
                         class="progress-fill"
-
                         id="reading-progress-fill"
-
                       ></div>
-
                     </div>
-
                     <div class="progress-footer">
-
                       <span id="current-chapter">
-
                         CHAPTER 01
-
                       </span>
-
                       <span>
-
                         {String(chapters.length).padStart(2, "0")}
-
                         {" "}TOTAL
-
                       </span>
-
                     </div>
-
                   </div>
-
                 </div>
-
                 <a class="sidebar-back" href={withBase("/learning/")}>
-
                   <span aria-hidden="true">←</span>
-
                   BACK TO LEARNING
-
                 </a>
-
               </div>
-
             </aside>
-
           )
-
         }
-
         <article class="article-main" id="article-content">
-
           <div class="article-topbar">
-
             <span>
-
               DOCUMENT / {entry.id.toUpperCase()}
-
             </span>
-
             <span>MARKDOWN RECORD</span>
-
           </div>
-
           {
-
             chapters.length > 0 && (
-
               <div class="mobile-chapter-nav">
-
                 <label for="mobile-chapter-select">
-
                   [ EXPLORE THE ARTICLE ]
-
                 </label>
-
                 <select
-
                   id="mobile-chapter-select"
-
                   aria-label="Jump to article chapter"
-
                 >
-
                   {chapters.map((heading, index) => (
-
                     <option value={heading.slug}>
-
                       {String(index + 1).padStart(2, "0")}
-
                       {" — "}
-
                       {heading.text}
-
                     </option>
-
                   ))}
-
                 </select>
-
                 <div class="mobile-progress">
-
                   <span>READING PROGRESS</span>
-
                   <span id="mobile-reading-percentage">
-
                     0%
-
                   </span>
-
                 </div>
-
                 <div class="mobile-progress-track">
-
                   <div
-
                     class="mobile-progress-fill"
-
                     id="mobile-progress-fill"
-
                   ></div>
-
                 </div>
-
               </div>
-
             )
-
           }
-
           <div class="article-body">
             <Content />
-
             {entry.id === "satellite-cybersecurity" && (
               <>
                 <div data-satellite-visual="architecture">
@@ -627,540 +324,287 @@ const hasCredentialSection = Boolean(
                 <div data-satellite-visual="command">
                   <SatelliteCommandPath />
                 </div>
+                <div data-satellite-visual="sparta">
+                  <SatelliteSpartaThreatModel />
+                </div>
+                <div data-satellite-visual="forensics">
+                  <SatelliteForensicsTimeline />
+                </div>
               </>
             )}
           </div>
-
           {
-
             hasCredentialSection && (
-
               <section
-
                 class="certificate-section"
-
                 id="credential"
-
                 aria-labelledby="certificate-section-title"
-
               >
-
                 <div class="certificate-heading">
-
                   <div>
-
                     <span class="eyebrow">
-
                       [ CREDENTIAL RECORD ]
-
                     </span>
-
                     <h2 id="certificate-section-title">
-
                       Certificate & Credential
-
                       <span class="certificate-cursor">_</span>
-
                     </h2>
-
                   </div>
-
                   <span class="certificate-record-label">
-
                     VERIFIED INFORMATION / AS PROVIDED
-
                   </span>
-
                 </div>
-
                 {certificate ? (
-
                   <>
-
                     <div class="certificate-preview">
-
                       <a
-
                         href={assetUrl(certificate.image)}
-
                         target="_blank"
-
                         rel="noopener noreferrer"
-
                         aria-label={`View full-size certificate: ${certificate.title}`}
-
                       >
-
                         <img
-
                           src={assetUrl(certificate.image)}
-
                           alt={certificate.alt}
-
                           loading="lazy"
-
                           decoding="async"
-
                         />
-
                       </a>
-
                     </div>
-
                     <div class="certificate-details">
-
                       <div class="certificate-detail">
-
                         <span class="certificate-detail-label">
-
                           CERTIFICATE
-
                         </span>
-
                         <strong>{certificate.title}</strong>
-
                       </div>
-
                       <div class="certificate-detail">
-
                         <span class="certificate-detail-label">
-
                           CREDENTIAL TYPE
-
                         </span>
-
                         <span>{certificateTypeLabel}</span>
-
                       </div>
-
                       <div class="certificate-detail">
-
                         <span class="certificate-detail-label">
-
                           ISSUED BY
-
                         </span>
-
                         <span>{certificate.issuer}</span>
-
                       </div>
-
                       {certificate.issuedAt && (
-
                         <div class="certificate-detail">
-
                           <span class="certificate-detail-label">
-
                             DATE ISSUED
-
                           </span>
-
                           <time
-
                             datetime={certificate.issuedAt.toISOString()}
-
                           >
-
                             {formatDate(certificate.issuedAt)}
-
                           </time>
-
                         </div>
-
                       )}
-
                       {certificate.credentialId && (
-
                         <div class="certificate-detail">
-
                           <span class="certificate-detail-label">
-
                             CREDENTIAL ID
-
                           </span>
-
                           <span class="certificate-id">
-
                             {certificate.credentialId}
-
                           </span>
-
                         </div>
-
                       )}
-
                     </div>
-
                     <div class="certificate-actions">
-
                       <a
-
                         class="certificate-action"
-
                         href={assetUrl(certificate.image)}
-
                         target="_blank"
-
                         rel="noopener noreferrer"
-
                       >
-
                         VIEW FULL CERTIFICATE
-
                         <span aria-hidden="true">↗</span>
-
                       </a>
-
                       {credentialUrl && (
-
                         <a
-
                           class="certificate-action certificate-action-primary"
-
                           href={credentialUrl}
-
                           target="_blank"
-
                           rel="noopener noreferrer"
-
                         >
-
                           VIEW CREDENTIAL RECORD
-
                           <span aria-hidden="true">↗</span>
-
                         </a>
-
                       )}
-
                     </div>
-
                   </>
-
                 ) : (
-
                   <div class="credential-link-only">
-
                     <p>
-
                       A credential record is available for this
-
                       learning entry.
-
                     </p>
-
                     {credentialUrl && (
-
                       <a
-
                         class="certificate-action certificate-action-primary"
-
                         href={credentialUrl}
-
                         target="_blank"
-
                         rel="noopener noreferrer"
-
                       >
-
                         VIEW CREDENTIAL RECORD
-
                         <span aria-hidden="true">↗</span>
-
                       </a>
-
                     )}
-
                   </div>
-
                 )}
-
                 {certificate?.type === "course-completion" && (
-
                   <p class="certificate-disclaimer">
-
                     This document records course completion. It
-
                     does not represent a professional certification.
-
                   </p>
-
                 )}
-
                 {certificate?.type === "training-award" && (
-
                   <p class="certificate-disclaimer">
-
                     This document records a training award.
-
                     It does not establish professional
-
                     certification status.
-
                   </p>
-
                 )}
-
               </section>
-
             )
-
           }
-
           {
-
             (completedAt || updatedAt) && (
-
               <div class="article-dates">
-
                 {completedAt && (
-
                   <p>
-
                     <span>TRAINING COMPLETED:</span>
-
                     <time datetime={completedAt.toISOString()}>
-
                       {formatDate(completedAt)}
-
                     </time>
-
                   </p>
-
                 )}
-
                 {updatedAt && (
-
                   <p>
-
                     <span>LAST UPDATED:</span>
-
                     <time datetime={updatedAt.toISOString()}>
-
                       {formatDate(updatedAt)}
-
                     </time>
-
                   </p>
-
                 )}
-
               </div>
-
             )
-
           }
-
           {
-
             references.length > 0 && (
-
               <section
-
                 class="references-panel"
-
                 aria-labelledby="references-title"
-
               >
-
                 <span class="eyebrow">
-
                   [ EXTERNAL RESOURCES ]
-
                 </span>
-
                 <h2 id="references-title">
-
                   References
-
                 </h2>
-
                 <ul>
-
                   {references.map((reference) => (
-
                     <li>
-
                       <a
-
                         href={reference.url}
-
                         target="_blank"
-
                         rel="noopener noreferrer"
-
                       >
-
                         {reference.label}
-
                         <span aria-hidden="true">↗</span>
-
                       </a>
-
                     </li>
-
                   ))}
-
                 </ul>
-
               </section>
-
             )
-
           }
-
           {
-
             hasTechnicalIndex && (
-
               <section
-
                 class="technical-index"
-
                 aria-labelledby="technical-index-title"
-
               >
-
                 <div class="technical-index-header">
-
                   <span class="eyebrow">
-
                     [ TECHNICAL INDEX ]
-
                   </span>
-
                   <h2 id="technical-index-title">
-
                     Knowledge areas
-
                     <span class="index-cursor">_</span>
-
                   </h2>
-
                 </div>
-
                 {topics.length > 0 && (
-
                   <div class="index-group">
-
                     <span class="index-group-label">
-
                       TOPICS
-
                     </span>
-
                     <div class="index-tags">
-
                       {topics.map((topic) => (
-
                         <span class="index-tag">
-
                           {topic}
-
                         </span>
-
                       ))}
-
                     </div>
-
                   </div>
-
                 )}
-
                 {skills.length > 0 && (
-
                   <div class="index-group">
-
                     <span class="index-group-label">
-
                       SKILLS
-
                     </span>
-
                     <div class="index-tags">
-
                       {skills.map((skill) => (
-
                         <span class="index-tag">
-
                           {skill}
-
                         </span>
-
                       ))}
-
                     </div>
-
                   </div>
-
                 )}
-
               </section>
-
             )
-
           }
-
           <div class="article-end">
-
             <span>END OF DOCUMENT</span>
-
             <span>[ EOF ]</span>
-
           </div>
-
           <nav
-
             class="article-navigation"
-
             aria-label="Article navigation"
-
           >
-
             <a href={withBase("/learning/")}>
-
               <span aria-hidden="true">←</span>
-
               RETURN TO LEARNING ARCHIVE
-
             </a>
-
             <a href={withBase("/research/")}>
-
               EXPLORE RESEARCH
-
               <span aria-hidden="true">↗</span>
-
             </a>
-
           </nav>
-
         </article>
-
       </div>
-
     </div>
-
   </main>
-
 </BaseLayout>
-
 <script>
-  // Astro page navigation can replace article DOM without a full page reload.
-  // Clean up old listeners before binding the new article.
+// Astro page navigation can replace article DOM without a full page reload.
+// Clean up old listeners before binding the new article.
   let disposeReadingNavigator: (() => void) | undefined;
-
   function positionSatelliteVisuals() {
     const body = document.querySelector<HTMLElement>(".article-body");
     if (!body) return;
-
     const placements = [
       { visual: "architecture", heading: "A satellite is more than the spacecraft" },
       { visual: "orbital", heading: "Why orbital mechanics matters to security" },
       { visual: "rf", heading: "The RF link is not the whole security model" },
       { visual: "command", heading: "Thinking about commands as a chain of trust" },
+      { visual: "sparta", heading: "Using SPARTA without treating a model as evidence" },
+      { visual: "forensics", heading: "A digital-forensics perspective" },
     ];
-
     const headings = Array.from(body.querySelectorAll<HTMLElement>("h2, h3"));
     for (const { visual, heading: target } of placements) {
       const diagram = body.querySelector<HTMLElement>(
@@ -1170,33 +614,28 @@ const hasCredentialSection = Boolean(
         (element) => element.textContent?.trim().toLowerCase() === target.toLowerCase()
       );
       if (!diagram || !heading) continue;
-
-      // Insert after the section's opening paragraph, if present.
+// Insert after the section's opening paragraph, if present.
       const next = heading.nextElementSibling;
       const anchor = next?.tagName === "P" ? next : heading;
       anchor.insertAdjacentElement("afterend", diagram);
     }
   }
-
   function initReadingNavigator() {
     disposeReadingNavigator?.();
     disposeReadingNavigator = undefined;
     positionSatelliteVisuals();
-
     const article = document.querySelector<HTMLElement>("#article-content");
     const body = article?.querySelector<HTMLElement>(".article-body");
     const links = Array.from(
       document.querySelectorAll<HTMLAnchorElement>("[data-chapter-link]")
     );
     if (!article || !body || links.length === 0) return;
-
     const chapters = links.flatMap((link) => {
       const id = link.dataset.chapterLink;
       const heading = id ? document.getElementById(id) : null;
       return heading ? [{ link, heading }] : [];
     });
     if (chapters.length === 0) return;
-
     const chapterNav = document.querySelector<HTMLElement>(".chapter-nav");
     const percentage = document.querySelector<HTMLOutputElement>("#reading-percentage");
     const progressBar = document.querySelector<HTMLElement>("#reading-progress-bar");
@@ -1206,26 +645,21 @@ const hasCredentialSection = Boolean(
     const mobilePercentage = document.querySelector<HTMLElement>("#mobile-reading-percentage");
     const mobileFill = document.querySelector<HTMLElement>("#mobile-progress-fill");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-
     let activeIndex = -1;
     let frame = 0;
-
     function setActiveChapter(index: number) {
       if (index === activeIndex) return;
       activeIndex = index;
-
       links.forEach((link) => {
         const isActive = link === chapters[index]?.link;
         link.classList.toggle("is-active", isActive);
         if (isActive) link.setAttribute("aria-current", "location");
         else link.removeAttribute("aria-current");
       });
-
       if (currentChapter) {
         currentChapter.textContent = `CHAPTER ${String(index + 1).padStart(2, "0")}`;
       }
       if (mobileSelect) mobileSelect.value = chapters[index].heading.id;
-
       const activeLink = chapters[index].link;
       if (chapterNav) {
         const navBounds = chapterNav.getBoundingClientRect();
@@ -1239,7 +673,6 @@ const hasCredentialSection = Boolean(
         }
       }
     }
-
     function updateReadingPosition() {
       frame = 0;
       const readingLine = Math.min(140, window.innerHeight * 0.25);
@@ -1248,9 +681,8 @@ const hasCredentialSection = Boolean(
         if (heading.getBoundingClientRect().top <= readingLine) index = i;
       });
       setActiveChapter(index);
-
-      // Measure the actual Markdown narrative rather than the entire article
-      // (which also contains credentials, references and footer content).
+// Measure the actual Markdown narrative rather than the entire article
+// (which also contains credentials, references and footer content).
       const bounds = body!.getBoundingClientRect();
       const start = bounds.top + window.scrollY;
       const finish = bounds.bottom + window.scrollY - window.innerHeight;
@@ -1259,19 +691,16 @@ const hasCredentialSection = Boolean(
         ? (window.scrollY + window.innerHeight >= bounds.bottom + window.scrollY ? 100 : 0)
         : Math.max(0, Math.min(100, (window.scrollY - start) / scrollRange * 100));
       const rounded = Math.round(progress);
-
       if (percentage) percentage.textContent = `${rounded}%`;
       if (mobilePercentage) mobilePercentage.textContent = `${rounded}%`;
       if (progressFill) progressFill.style.width = `${progress}%`;
       if (mobileFill) mobileFill.style.width = `${progress}%`;
       if (progressBar) progressBar.setAttribute("aria-valuenow", String(rounded));
     }
-
     function requestUpdate() {
       if (frame) return;
       frame = window.requestAnimationFrame(updateReadingPosition);
     }
-
     function onMobileChange() {
       if (!mobileSelect) return;
       const target = document.getElementById(mobileSelect.value);
@@ -1282,13 +711,11 @@ const hasCredentialSection = Boolean(
       });
       requestUpdate();
     }
-
     mobileSelect?.addEventListener("change", onMobileChange);
     window.addEventListener("scroll", requestUpdate, { passive: true });
     window.addEventListener("resize", requestUpdate, { passive: true });
     window.addEventListener("load", requestUpdate);
     requestUpdate();
-
     disposeReadingNavigator = () => {
       if (frame) window.cancelAnimationFrame(frame);
       mobileSelect?.removeEventListener("change", onMobileChange);
@@ -1297,7 +724,6 @@ const hasCredentialSection = Boolean(
       window.removeEventListener("load", requestUpdate);
     };
   }
-
   document.addEventListener("astro:page-load", initReadingNavigator);
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initReadingNavigator, { once: true });
@@ -1305,1843 +731,926 @@ const hasCredentialSection = Boolean(
     initReadingNavigator();
   }
 </script>
-
 <style>
-
 /* Article shell */
-
   .article-shell {
-
     padding-top: 2rem;
-
   }
-
   .breadcrumb {
-
     display: flex;
-
     align-items: center;
-
     flex-wrap: wrap;
-
     gap: 0.75rem;
-
     margin-bottom: 2rem;
-
     color: var(--text-dim);
-
     font-family: var(--font-mono);
-
     font-size: 0.7rem;
-
     letter-spacing: 0.04em;
-
   }
-
   .breadcrumb a {
-
     color: var(--text-muted);
-
     text-decoration: none;
-
   }
-
   .breadcrumb a:hover {
-
     color: var(--green);
-
   }
-
   .breadcrumb [aria-current="page"] {
-
     color: var(--green);
-
   }
-
 /* Header */
-
   .article-header {
-
     padding: 2rem 0 0;
-
     border-top: 1px solid var(--border);
-
     border-bottom: 1px solid var(--border);
-
   }
-
   .header-meta {
-
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
-
     flex-wrap: wrap;
-
     gap: 1rem;
-
     margin-bottom: 3rem;
-
   }
-
   .record-id {
-
     color: var(--text-dim);
-
     font-family: var(--font-mono);
-
     font-size: 0.65rem;
-
     letter-spacing: 0.05em;
-
     overflow-wrap: anywhere;
-
   }
-
   .header-main {
-
     display: flex;
-
     align-items: flex-start;
-
     justify-content: space-between;
-
     gap: 3rem;
-
     margin-bottom: 4rem;
-
   }
-
   .header-copy {
-
     min-width: 0;
-
   }
-
   .article-category {
-
     display: block;
-
     margin-bottom: 1.25rem;
-
     color: var(--blue);
-
     font-family: var(--font-mono);
-
     font-size: 0.75rem;
-
     letter-spacing: 0.08em;
-
   }
-
   .article-header h1 {
-
     max-width: 850px;
-
     margin-bottom: 1.5rem;
-
     font-size: clamp(2.5rem, 5vw, 5rem);
-
     letter-spacing: -0.065em;
-
     line-height: 1.08;
-
     overflow-wrap: break-word;
-
   }
-
   .title-cursor {
-
     color: var(--green);
-
   }
-
   .article-description {
-
     max-width: 700px;
-
     margin: 0;
-
     color: var(--text-muted);
-
     font-size: clamp(1rem, 1.5vw, 1.2rem);
-
     line-height: 1.7;
-
   }
-
   .header-symbol {
-
     display: flex;
-
     width: 110px;
-
     height: 110px;
-
     flex-shrink: 0;
-
     align-items: center;
-
     justify-content: center;
-
     gap: 0.15rem;
-
     border: 1px solid var(--border-strong);
-
     color: var(--green);
-
     font-family: var(--font-mono);
-
     font-size: 2.75rem;
-
     font-weight: 700;
-
     letter-spacing: -0.15em;
-
   }
-
   .header-symbol span:last-child {
-
     color: var(--blue);
-
   }
-
   .article-metadata {
-
     display: grid;
-
     grid-template-columns: repeat(4, minmax(0, 1fr));
-
     border-top: 1px solid var(--border);
-
   }
-
   .metadata-item {
-
     display: flex;
-
     min-height: 100px;
-
     flex-direction: column;
-
     justify-content: center;
-
     gap: 0.75rem;
-
     padding: 1.25rem;
-
     border-right: 1px solid var(--border);
-
   }
-
   .metadata-item:first-child {
-
     padding-left: 0;
-
   }
-
   .metadata-item:last-child {
-
     border-right: 0;
-
   }
-
   .metadata-label {
-
     color: var(--text-dim);
-
     font-family: var(--font-mono);
-
     font-size: 0.65rem;
-
     letter-spacing: 0.05em;
-
   }
-
   .metadata-value,
-
   .metadata-item time {
-
     color: var(--text);
-
     font-family: var(--font-mono);
-
     font-size: 0.8rem;
-
     font-weight: 500;
-
     overflow-wrap: anywhere;
-
   }
-
   .status-value {
-
     display: inline-flex;
-
     align-items: center;
-
     gap: 0.5rem;
-
     color: var(--green);
-
   }
-
   .status-planned {
-
     color: var(--text-muted);
-
   }
-
   .status-in-progress {
-
     color: var(--blue);
-
   }
-
   .status-square {
-
     width: 7px;
-
     height: 7px;
-
     flex-shrink: 0;
-
     background: currentColor;
-
   }
-
   .credential-earned {
-
     color: var(--green);
-
   }
-
 /* Reading layout */
-
   .article-container {
-
     padding-top: 3.5rem;
-
     padding-bottom: 6rem;
-
   }
-
   .reading-layout {
-
     display: grid;
-
     grid-template-columns:
-
       minmax(240px, 280px)
-
       minmax(0, 1fr);
-
     align-items: start;
-
     gap: clamp(2rem, 4vw, 4rem);
-
   }
-
   .reading-layout.without-sidebar {
-
     display: block;
-
   }
-
   .without-sidebar .article-main {
-
     max-width: 980px;
-
     margin: 0 auto;
-
   }
-
 /* Sticky chapter navigation */
-
   .reading-sidebar {
-
     min-width: 0;
-
     align-self: stretch;
-
   }
-
   .sidebar-sticky {
-
     position: sticky;
-
     top: 1.5rem;
-
   }
-
   .sidebar-panel {
-
     display: flex;
-
     max-height: calc(100vh - 3rem);
-
     min-height: 0;
-
     flex-direction: column;
-
     border: 1px solid var(--border-strong);
-
     background: var(--bg-raised);
-
   }
-
   .sidebar-header {
-
     padding: 1.5rem 1.25rem 1.25rem;
-
     border-bottom: 1px solid var(--border);
-
   }
-
   .sidebar-eyebrow {
-
     display: block;
-
     margin-bottom: 0.9rem;
-
     color: var(--blue);
-
     font-family: var(--font-mono);
-
     font-size: 0.65rem;
-
     letter-spacing: 0.07em;
-
   }
-
   .sidebar-header h2 {
-
     margin: 0;
-
     color: var(--text);
-
     font-size: 1.25rem;
-
     letter-spacing: -0.045em;
-
     line-height: 1.3;
-
   }
-
   .sidebar-cursor {
-
     color: var(--green);
-
   }
-
   .sidebar-description {
-
     margin: 0.75rem 0 0;
-
     color: var(--text-dim);
-
     font-size: 0.75rem;
-
     line-height: 1.6;
-
   }
-
   .chapter-nav {
-
     min-height: 0;
-
     flex: 1 1 auto;
-
     overflow-y: auto;
-
     overscroll-behavior-y: contain;
-
     scrollbar-width: thin;
-
     scrollbar-color:
-
       var(--border-strong)
-
       var(--bg-raised);
-
   }
-
   .chapter-list {
-
     margin: 0;
-
     padding: 0.75rem 0;
-
     list-style: none;
-
   }
-
   .chapter-link {
-
     display: grid;
-
     grid-template-columns: 2rem minmax(0, 1fr);
-
     align-items: start;
-
     gap: 0.65rem;
-
     padding: 0.85rem 1rem;
-
     border-left: 3px solid transparent;
-
     color: var(--text-muted);
-
     text-decoration: none;
-
     transition:
-
       color var(--transition-fast),
-
       background var(--transition-fast),
-
       border-color var(--transition-fast);
-
   }
-
   .chapter-link:hover,
-
   .chapter-link:focus-visible {
-
     background: var(--bg-panel);
-
     color: var(--text);
-
   }
-
   .chapter-link.is-active {
-
     border-left-color: var(--green);
-
     background: var(--bg-panel);
-
     color: var(--text);
-
   }
-
   .chapter-number {
-
     color: var(--text-dim);
-
     font-family: var(--font-mono);
-
     font-size: 0.7rem;
-
     line-height: 1.6;
-
   }
-
   .chapter-link.is-active .chapter-number {
-
     color: var(--green);
-
   }
-
   .chapter-title {
-
     font-size: 0.78rem;
-
     line-height: 1.55;
-
     overflow-wrap: anywhere;
-
   }
-
   .chapter-link.is-active .chapter-title {
-
     color: var(--green);
-
     font-weight: 600;
-
   }
-
 /* Reading progress */
-
   .reading-progress {
-
     flex-shrink: 0;
-
     padding: 1.25rem;
-
     border-top: 1px solid var(--border);
-
     background: var(--bg);
-
   }
-
   .progress-heading,
-
   .progress-footer {
-
     display: flex;
-
     justify-content: space-between;
-
     gap: 0.75rem;
-
     font-family: var(--font-mono);
-
     font-size: 0.6rem;
-
     letter-spacing: 0.04em;
-
   }
-
   .progress-heading {
-
     color: var(--blue);
-
   }
-
   .progress-heading output {
-
     color: var(--green);
-
   }
-
   .progress-track {
-
     height: 4px;
-
     margin: 0.85rem 0;
-
     overflow: hidden;
-
     background: var(--border-strong);
-
   }
-
   .progress-fill {
-
     width: 0;
-
     height: 100%;
-
     background: var(--green);
-
   }
-
   .progress-footer {
-
     color: var(--text-dim);
-
   }
-
   .sidebar-back {
-
     display: inline-flex;
-
     align-items: center;
-
     gap: 0.75rem;
-
     margin-top: 1.25rem;
-
     color: var(--green);
-
     font-family: var(--font-mono);
-
     font-size: 0.7rem;
-
     text-decoration: none;
-
   }
-
   .sidebar-back:hover {
-
     color: var(--blue);
-
   }
-
 /* Main article */
-
   .article-main {
-
     width: 100%;
-
     min-width: 0;
-
   }
-
   .article-topbar {
-
     display: flex;
-
     justify-content: space-between;
-
     flex-wrap: wrap;
-
     gap: 1rem;
-
     padding: 0.85rem 1rem;
-
     border: 1px solid var(--border);
-
     background: var(--bg-raised);
-
     color: var(--text-dim);
-
     font-family: var(--font-mono);
-
     font-size: 0.65rem;
-
     letter-spacing: 0.04em;
-
   }
-
   .article-body {
-
     padding: 2.5rem 0 3rem;
-
     overflow-wrap: break-word;
-
   }
-
   .mobile-chapter-nav {
-
     display: none;
-
   }
-
 /* Rendered Markdown */
-
   .article-body :global(h1) {
-
     margin: 0 0 1.5rem;
-
     font-size: clamp(2rem, 3.5vw, 3rem);
-
   }
-
   .article-body :global(h2) {
-
     margin: 3rem 0 1.25rem;
-
     padding-bottom: 0.75rem;
-
     border-bottom: 1px solid var(--border);
-
     font-size: clamp(1.5rem, 2.5vw, 2rem);
-
     scroll-margin-top: 2rem;
-
   }
-
   .article-body :global(h2)::before {
-
     content: "// ";
-
     color: var(--green);
-
     font-family: var(--font-mono);
-
     font-size: 0.75em;
-
   }
-
   .article-body :global(h3) {
-
     margin: 2rem 0 1rem;
-
     font-size: 1.35rem;
-
     scroll-margin-top: 2rem;
-
   }
-
   .article-body :global(h4) {
-
     margin: 1.5rem 0 0.75rem;
-
     font-size: 1.1rem;
-
   }
-
   .article-body :global(p) {
-
     margin-bottom: 1.25rem;
-
     color: var(--text-muted);
-
     font-size: 1rem;
-
     line-height: 1.85;
-
   }
-
   .article-body :global(strong) {
-
     color: var(--text);
-
     font-weight: 600;
-
   }
-
   .article-body :global(a) {
-
     color: var(--blue);
-
     text-decoration-color: var(--border-strong);
-
     text-underline-offset: 4px;
-
   }
-
   .article-body :global(a:hover) {
-
     color: var(--green);
-
   }
-
   .article-body :global(ul),
-
   .article-body :global(ol) {
-
     margin: 1.25rem 0 1.75rem;
-
     padding-left: 1.5rem;
-
     color: var(--text-muted);
-
   }
-
   .article-body :global(li) {
-
     margin-bottom: 0.6rem;
-
     line-height: 1.75;
-
   }
-
   .article-body :global(li)::marker {
-
     color: var(--green);
-
   }
-
   .article-body :global(blockquote) {
-
     margin: 2rem 0;
-
     padding: 1.25rem 1.5rem;
-
     border-left: 3px solid var(--green);
-
     background: var(--bg-raised);
-
   }
-
   .article-body :global(blockquote p) {
-
     margin: 0;
-
     color: var(--text);
-
     font-family: var(--font-mono);
-
     font-size: 0.85rem;
-
     line-height: 1.8;
-
   }
-
   .article-body :global(code) {
-
     padding: 0.15rem 0.35rem;
-
     background: var(--bg-panel);
-
     color: var(--green);
-
     font-family: var(--font-mono);
-
     font-size: 0.85em;
-
   }
-
   .article-body :global(pre) {
-
     max-width: 100%;
-
     margin: 1.75rem 0;
-
     padding: 1.5rem;
-
     overflow-x: auto;
-
     border: 1px solid var(--border-strong);
-
     background: var(--bg-inset);
-
     font-size: 0.85rem;
-
     line-height: 1.7;
-
   }
-
   .article-body :global(pre code) {
-
     padding: 0;
-
     background: transparent;
-
     color: inherit;
-
   }
-
   .article-body :global(table) {
-
     display: block;
-
     width: 100%;
-
     margin: 2rem 0;
-
     overflow-x: auto;
-
     border-collapse: collapse;
-
     font-size: 0.85rem;
-
   }
-
   .article-body :global(th),
-
   .article-body :global(td) {
-
     padding: 0.85rem 1rem;
-
     border: 1px solid var(--border);
-
     text-align: left;
-
   }
-
   .article-body :global(th) {
-
     background: var(--bg-panel);
-
     color: var(--green);
-
     font-family: var(--font-mono);
-
   }
-
   .article-body :global(td) {
-
     color: var(--text-muted);
-
   }
-
   .article-body :global(img) {
-
     display: block;
-
     max-width: 100%;
-
     height: auto;
-
     margin: 2rem auto;
-
     border: 1px solid var(--border);
-
   }
-
   .article-body :global(hr) {
-
     margin: 3rem 0;
-
     border: 0;
-
     border-top: 1px solid var(--border-strong);
-
   }
-
 /* Inline satellite teaching diagrams */
-
   .article-body [data-satellite-visual] {
     min-width: 0;
     max-width: 100%;
     margin: 1.75rem 0 2.5rem;
   }
-
   .article-body [data-satellite-visual] :global(svg) {
     max-width: 100%;
   }
-
 /* Certificate and credential display */
-
   .certificate-section {
-
     margin: 1rem 0 3rem;
-
     padding: 2rem;
-
     border: 1px solid var(--border-strong);
-
     background: var(--bg-raised);
-
     scroll-margin-top: 2rem;
-
   }
-
   .certificate-heading {
-
     display: flex;
-
     align-items: end;
-
     justify-content: space-between;
-
     flex-wrap: wrap;
-
     gap: 1rem;
-
     margin-bottom: 1.75rem;
-
   }
-
   .certificate-heading h2 {
-
     margin: 0.75rem 0 0;
-
     color: var(--text);
-
     font-size: clamp(1.5rem, 2.5vw, 2rem);
-
     letter-spacing: -0.045em;
-
   }
-
   .certificate-cursor {
-
     color: var(--green);
-
   }
-
   .certificate-record-label {
-
     color: var(--text-dim);
-
     font-family: var(--font-mono);
-
     font-size: 0.6rem;
-
     letter-spacing: 0.05em;
-
   }
-
   .certificate-preview {
-
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
     padding: clamp(0.75rem, 3vw, 2rem);
-
     border: 1px solid var(--border);
-
     background: var(--bg-inset);
-
   }
-
   .certificate-preview a {
-
     display: block;
-
     width: 100%;
-
     text-align: center;
-
   }
-
   .certificate-preview img {
-
     display: block;
-
     width: auto;
-
     max-width: 100%;
-
     max-height: 680px;
-
     height: auto;
-
     margin: 0 auto;
-
     object-fit: contain;
-
     border: 1px solid var(--border-strong);
-
   }
-
   .certificate-preview a:hover img {
-
     border-color: var(--green);
-
   }
-
   .certificate-preview a:focus-visible {
-
     outline: 2px solid var(--green);
-
     outline-offset: 5px;
-
   }
-
   .certificate-details {
-
     display: grid;
-
     grid-template-columns: repeat(2, minmax(0, 1fr));
-
     margin-top: 1.5rem;
-
     border-top: 1px solid var(--border);
-
     border-left: 1px solid var(--border);
-
   }
-
   .certificate-detail {
-
     display: flex;
-
     min-width: 0;
-
     flex-direction: column;
-
     gap: 0.65rem;
-
     padding: 1.25rem;
-
     border-right: 1px solid var(--border);
-
     border-bottom: 1px solid var(--border);
-
   }
-
   .certificate-detail-label {
-
     color: var(--blue);
-
     font-family: var(--font-mono);
-
     font-size: 0.65rem;
-
     letter-spacing: 0.06em;
-
   }
-
   .certificate-detail strong,
-
   .certificate-detail > span:last-child,
-
   .certificate-detail time {
-
     color: var(--text);
-
     font-family: var(--font-mono);
-
     font-size: 0.82rem;
-
     line-height: 1.6;
-
     overflow-wrap: anywhere;
-
   }
-
   .certificate-detail .certificate-id {
-
     color: var(--green);
-
   }
-
   .certificate-actions {
-
     display: flex;
-
     flex-wrap: wrap;
-
     gap: 0.75rem;
-
     margin-top: 1.5rem;
-
   }
-
   .certificate-action {
-
     display: inline-flex;
-
     align-items: center;
-
     justify-content: space-between;
-
     gap: 1.5rem;
-
     min-height: 44px;
-
     padding: 0.85rem 1rem;
-
     border: 1px solid var(--border-strong);
-
     color: var(--green);
-
     font-family: var(--font-mono);
-
     font-size: 0.7rem;
-
     line-height: 1.5;
-
     text-decoration: none;
-
     transition:
-
       background var(--transition-fast),
-
       color var(--transition-fast),
-
       border-color var(--transition-fast);
-
   }
-
   .certificate-action:hover {
-
     border-color: var(--green);
-
     background: var(--bg-panel);
-
     color: var(--text);
-
   }
-
   .certificate-action-primary {
-
     border-color: var(--green);
-
     background: var(--bg-panel);
-
   }
-
   .certificate-action:focus-visible {
-
     outline: 2px solid var(--green);
-
     outline-offset: 3px;
-
   }
-
   .credential-link-only {
-
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
-
     flex-wrap: wrap;
-
     gap: 1.25rem;
-
     padding: 1.5rem;
-
     border: 1px solid var(--border);
-
     background: var(--bg-inset);
-
   }
-
   .credential-link-only p {
-
     margin: 0;
-
     color: var(--text-muted);
-
     line-height: 1.7;
-
   }
-
   .certificate-disclaimer {
-
     margin: 1.5rem 0 0;
-
     padding-top: 1.25rem;
-
     border-top: 1px solid var(--border);
-
     color: var(--text-muted);
-
     font-size: 0.8rem;
-
     line-height: 1.7;
-
   }
-
   .certificate-disclaimer::before {
-
     content: "NOTE / ";
-
     color: var(--blue);
-
     font-family: var(--font-mono);
-
     font-size: 0.7rem;
-
   }
-
 /* Dates */
-
   .article-dates {
-
     padding: 1.5rem 0;
-
     border-top: 1px solid var(--border);
-
   }
-
   .article-dates p {
-
     display: flex;
-
     justify-content: space-between;
-
     flex-wrap: wrap;
-
     gap: 0.5rem;
-
     margin: 0.5rem 0;
-
     font-family: var(--font-mono);
-
     font-size: 0.75rem;
-
   }
-
   .article-dates span {
-
     color: var(--text-dim);
-
   }
-
   .article-dates time {
-
     color: var(--text);
-
   }
-
 /* References */
-
   .references-panel {
-
     margin-top: 2rem;
-
     padding: 2rem;
-
     border: 1px solid var(--border);
-
     background: var(--bg-raised);
-
   }
-
   .references-panel h2 {
-
     margin: 1rem 0 1.5rem;
-
     font-size: 1.5rem;
-
   }
-
   .references-panel ul {
-
     margin: 0;
-
     padding: 0;
-
     list-style: none;
-
   }
-
   .references-panel li + li {
-
     margin-top: 0.75rem;
-
   }
-
   .references-panel a {
-
     display: inline-flex;
-
     align-items: center;
-
     gap: 0.5rem;
-
     color: var(--blue);
-
     font-size: 0.9rem;
-
     overflow-wrap: anywhere;
-
   }
-
   .references-panel a:hover {
-
     color: var(--green);
-
   }
-
 /* Technical index */
-
   .technical-index {
-
     margin-top: 3rem;
-
     padding: 2rem;
-
     border: 1px solid var(--border);
-
     background: var(--bg-raised);
-
   }
-
   .technical-index-header {
-
     margin-bottom: 2rem;
-
   }
-
   .technical-index-header h2 {
-
     margin: 0.75rem 0 0;
-
     font-size: clamp(1.4rem, 2.5vw, 2rem);
-
     letter-spacing: -0.04em;
-
   }
-
   .index-cursor {
-
     color: var(--green);
-
   }
-
   .index-group + .index-group {
-
     margin-top: 1.75rem;
-
     padding-top: 1.75rem;
-
     border-top: 1px solid var(--border);
-
   }
-
   .index-group-label {
-
     display: block;
-
     margin-bottom: 1rem;
-
     color: var(--blue);
-
     font-family: var(--font-mono);
-
     font-size: 0.65rem;
-
     letter-spacing: 0.07em;
-
   }
-
   .index-tags {
-
     display: flex;
-
     flex-wrap: wrap;
-
     gap: 0.5rem;
-
   }
-
   .index-tag {
-
     padding: 0.5rem 0.75rem;
-
     border: 1px solid var(--border-strong);
-
     color: var(--text-muted);
-
     font-family: var(--font-mono);
-
     font-size: 0.7rem;
-
   }
-
 /* End and navigation */
-
   .article-end {
-
     display: flex;
-
     justify-content: space-between;
-
     gap: 1rem;
-
     margin-top: 3rem;
-
     padding: 1rem 0;
-
     border-top: 1px solid var(--border);
-
     color: var(--text-dim);
-
     font-family: var(--font-mono);
-
     font-size: 0.7rem;
-
   }
-
   .article-navigation {
-
     display: flex;
-
     justify-content: space-between;
-
     flex-wrap: wrap;
-
     gap: 1.5rem;
-
     padding-top: 2rem;
-
   }
-
   .article-navigation a {
-
     display: inline-flex;
-
     align-items: center;
-
     gap: 0.75rem;
-
     color: var(--green);
-
     font-family: var(--font-mono);
-
     font-size: 0.75rem;
-
     text-decoration: none;
-
   }
-
   .article-navigation a:hover {
-
     color: var(--blue);
-
   }
-
 /* Responsive */
-
   @media (max-width: 1100px) {
-
     .reading-layout {
-
       grid-template-columns:
-
         minmax(210px, 240px)
-
         minmax(0, 1fr);
-
       gap: 2rem;
-
     }
-
     .header-symbol {
-
       display: none;
-
     }
-
   }
-
   @media (max-width: 800px) {
-
     .article-metadata {
-
       grid-template-columns: repeat(2, minmax(0, 1fr));
-
     }
-
     .metadata-item:nth-child(2) {
-
       border-right: 0;
-
     }
-
     .metadata-item:nth-child(-n + 2) {
-
       border-bottom: 1px solid var(--border);
-
     }
-
     .metadata-item:nth-child(3) {
-
       padding-left: 0;
-
     }
-
     .reading-layout {
-
       display: block;
-
     }
-
     .reading-sidebar {
-
       display: none;
-
     }
-
     .article-container {
-
       padding-top: 2.5rem;
-
     }
-
     .mobile-chapter-nav {
-
       display: block;
-
       position: sticky;
-
       top: 0;
-
       z-index: 10;
-
       margin-top: 1rem;
-
       padding: 1rem;
-
       border: 1px solid var(--border-strong);
-
       background: var(--bg-raised);
-
     }
-
     .mobile-chapter-nav label {
-
       display: block;
-
       margin-bottom: 0.75rem;
-
       color: var(--blue);
-
       font-family: var(--font-mono);
-
       font-size: 0.65rem;
-
       letter-spacing: 0.06em;
-
     }
-
     .mobile-chapter-nav select {
-
       width: 100%;
-
       min-width: 0;
-
       padding: 0.8rem;
-
       border: 1px solid var(--border-strong);
-
       border-radius: 0;
-
       background: var(--bg);
-
       color: var(--text);
-
       font-family: var(--font-mono);
-
       font-size: 0.75rem;
-
     }
-
     .mobile-chapter-nav select:focus-visible {
-
       outline: 2px solid var(--green);
-
       outline-offset: 2px;
-
     }
-
     .mobile-progress {
-
       display: flex;
-
       justify-content: space-between;
-
       gap: 1rem;
-
       margin-top: 1rem;
-
       color: var(--text-dim);
-
       font-family: var(--font-mono);
-
       font-size: 0.6rem;
-
     }
-
     .mobile-progress span:last-child {
-
       color: var(--green);
-
     }
-
     .mobile-progress-track {
-
       height: 3px;
-
       margin-top: 0.5rem;
-
       background: var(--border-strong);
-
     }
-
     .mobile-progress-fill {
-
       width: 0;
-
       height: 100%;
-
       background: var(--green);
-
     }
-
     .article-body :global(h2),
-
     .article-body :global(h3) {
-
       scroll-margin-top: 11rem;
-
     }
-
   }
-
   @media (max-width: 550px) {
-
     .article-shell {
-
       padding-top: 1.25rem;
-
     }
-
     .header-meta {
-
       align-items: flex-start;
-
       flex-direction: column;
-
       margin-bottom: 2rem;
-
     }
-
     .header-main {
-
       margin-bottom: 2.5rem;
-
     }
-
     .article-header h1 {
-
       font-size: clamp(2.2rem, 10vw, 3.5rem);
-
     }
-
     .metadata-item {
-
       padding: 1rem;
-
     }
-
     .metadata-value,
-
     .metadata-item time {
-
       font-size: 0.7rem;
-
     }
-
     .article-body {
-
       padding-top: 1.5rem;
-
     }
-
     .article-body :global(pre) {
-
       padding: 1rem;
-
     }
-
     .references-panel,
-
     .technical-index,
-
     .certificate-section {
-
       padding: 1.25rem;
-
     }
-
     .certificate-details {
-
       grid-template-columns: minmax(0, 1fr);
-
     }
-
     .certificate-actions {
-
       flex-direction: column;
-
     }
-
     .certificate-action {
-
       width: 100%;
-
     }
-
     .certificate-record-label {
-
       line-height: 1.6;
-
     }
-
   }
-
   @media (prefers-reduced-motion: reduce) {
-
     .chapter-link,
-
     .certificate-action {
-
       transition: none;
-
     }
-
     .chapter-nav {
-
       scroll-behavior: auto;
-
     }
-
   }
-
 </style>

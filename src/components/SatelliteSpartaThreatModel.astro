@@ -1,0 +1,52 @@
+---
+/** NULL SECTOR — fictional SPARTA-informed threat-modelling exercise. No technique IDs or assessed systems. */
+const scenarios = [
+  { id: '01', title: 'Compromised operator identity', path: 'Operator account → command approval', assumption: 'An attacker has obtained access to an account that can submit requests.', threat: 'An unauthorised request enters an otherwise legitimate ground workflow.', controls: 'Least privilege, strong authentication, independent approvals and command audit trails.', evidence: 'Identity events, request provenance, approval decisions and command-history records.' },
+  { id: '02', title: 'Message spoofing or replay', path: 'Uplink → onboard command validation', assumption: 'An adversary can attempt to introduce or repeat messages at the communications boundary.', threat: 'A spacecraft processes a forged or stale instruction if validation is inadequate.', controls: 'End-to-end authentication, integrity protection, freshness checks and onboard authorisation.', evidence: 'Command identifiers, sequence or freshness data, receiver events and rejection records, where available.' },
+  { id: '03', title: 'Contact disruption', path: 'Ground station ↔ spacecraft', assumption: 'A communications opportunity can be disrupted or missed.', threat: 'Commands or telemetry are delayed or unavailable during a planned contact.', controls: 'Resilient scheduling, monitoring, operational fallbacks and recovery procedures.', evidence: 'Contact schedules, ground equipment health, receiver status and signal-quality records.' },
+];
+---
+<figure class="ns-sparta" aria-labelledby="ns-sparta-title">
+  <header class="ns-head"><div><span class="ns-eyebrow">THREAT MODELLING / 05</span><h3 id="ns-sparta-title">From a mission asset to a testable threat hypothesis</h3></div><span class="ns-tag">FICTIONAL MISSION</span></header>
+  <p class="ns-intro">A SPARTA-informed model starts with a defined system and attacker assumptions. Select a scenario to see how the threat, safeguards and possible evidence differ.</p>
+  <ol class="ns-process" aria-label="Threat modelling stages">
+    <li><span>01 / SCOPE</span><strong>Mission assets</strong><small>Operator, ground services, RF link, spacecraft</small></li>
+    <li><span>02 / BOUNDARY</span><strong>Trust transitions</strong><small>Identity, approval, transmission, validation</small></li>
+    <li><span>03 / HYPOTHESIS</span><strong>Attacker action</strong><small>Access and capabilities must be stated</small></li>
+    <li><span>04 / TEST</span><strong>Controls & evidence</strong><small>What could prevent or substantiate it?</small></li>
+  </ol>
+  <div class="ns-legend"><span><i class="ns-dot ns-blue"></i> Architecture / assumption</span><span><i class="ns-dot ns-amber"></i> Potential threat</span><span><i class="ns-dot ns-green"></i> Safeguard / evidence</span></div>
+  <div class="ns-toolbar" aria-label="Threat model controls"><span>EXPLORE SCENARIOS</span><button type="button" data-sparta-action="expand">EXPAND ALL</button><button type="button" data-sparta-action="collapse">COLLAPSE ALL</button></div>
+  <div class="ns-details" aria-label="Hypothetical threat scenarios">
+    {scenarios.map((scenario) => <details>
+      <summary><span class="ns-index">{scenario.id}</span><span>{scenario.title}<small>{scenario.path}</small></span><span class="ns-expand" aria-hidden="true">+</span></summary>
+      <div class="ns-content"><p><strong>Assumption.</strong> {scenario.assumption}</p><div class="ns-cards"><section class="ns-threat"><span>POTENTIAL THREAT</span><p>{scenario.threat}</p></section><section class="ns-control"><span>DEFENSIVE CONTROLS</span><p>{scenario.controls}</p></section><section class="ns-evidence"><span>POSSIBLE EVIDENCE</span><p>{scenario.evidence}</p></section></div></div>
+    </details>)}
+  </div>
+  <figcaption>Conceptual teaching example informed by threat-modelling principles and the SPARTA framework. These are not verified SPARTA technique mappings, findings, or claims about an operational mission.</figcaption>
+</figure>
+<style>
+.ns-sparta{--g:var(--green,#47d7a0);--b:var(--blue,#66a9e5);--a:#e4ad68;--line:var(--border,#30434d);--muted:var(--text-muted,#b5c4d0);--dim:var(--text-dim,#91a6b5);--fg:var(--text,#e4edf3);margin:2.5rem 0;padding:1.35rem;border:1px solid var(--line);border-radius:14px;background:var(--bg-raised,#101820);color:var(--fg);font-family:inherit}
+.ns-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}.ns-eyebrow,.ns-tag,.ns-process li>span,.ns-index,.ns-cards section>span{font:700 .66rem/1.5 var(--font-mono,monospace);letter-spacing:.08em}.ns-eyebrow,.ns-index{color:var(--b)}.ns-tag{border:1px solid var(--line);border-radius:4px;padding:.35rem .5rem;color:var(--dim);white-space:nowrap}.ns-head h3{color:var(--fg);font-size:1.15rem;line-height:1.4;margin:.45rem 0 0}.ns-intro{color:var(--muted);font-size:.88rem;line-height:1.7;margin:1rem 0 1.35rem}
+.ns-process{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;list-style:none;padding:0;margin:0 0 1rem}.ns-process li{position:relative;min-width:0;display:flex;flex-direction:column;gap:.35rem;padding:.8rem .7rem;border:1px solid var(--line);border-radius:8px;background:#17232d}.ns-process li:not(:last-child):after{content:'→';position:absolute;right:-.83rem;top:45%;color:var(--g);font:700 1rem monospace}.ns-process li>span{color:var(--b)}.ns-process strong{font-size:.8rem;line-height:1.4}.ns-process small{color:var(--muted);font-size:.72rem;line-height:1.5}.ns-legend{display:flex;flex-wrap:wrap;gap:.6rem 1rem;margin:0 0 1.2rem;color:var(--muted);font-size:.7rem}.ns-legend span{display:inline-flex;align-items:center;gap:.4rem}.ns-dot{display:inline-block;width:7px;height:7px;border-radius:50%}.ns-blue{background:var(--b)}.ns-amber{background:var(--a)}.ns-green{background:var(--g)}
+.ns-details{display:grid;gap:.5rem}.ns-details details{border:1px solid var(--line);border-radius:7px;background:rgba(255,255,255,.02);overflow:hidden}.ns-details summary{cursor:pointer;display:flex;align-items:center;gap:.75rem;padding:.85rem .9rem;list-style:none;font-size:.85rem;font-weight:600}.ns-details summary::-webkit-details-marker{display:none}.ns-details summary::marker{content:''}.ns-details summary:hover{background:rgba(102,169,229,.055)}.ns-details summary:focus-visible{outline:2px solid var(--g);outline-offset:-3px}.ns-details summary small{display:block;margin-top:.2rem;color:var(--muted);font-size:.7rem;font-weight:400}.ns-expand{margin-left:auto;color:var(--g);font-size:1.1rem}.ns-details details[open] .ns-expand{transform:rotate(45deg)}.ns-content{padding:.8rem .9rem 1rem;border-top:1px solid var(--line)}.ns-content>p{color:var(--muted);font-size:.83rem;line-height:1.7;margin:0 0 .85rem}.ns-content>p strong{color:var(--b)}.ns-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem}.ns-cards section{min-width:0;padding:.75rem;border:1px solid var(--line);border-radius:6px}.ns-threat>span{color:var(--a)}.ns-control>span,.ns-evidence>span{color:var(--g)}.ns-cards p{color:var(--muted);font-size:.78rem;line-height:1.65;margin:.4rem 0 0}.ns-sparta figcaption{color:var(--dim);font-size:.73rem;line-height:1.6;margin-top:1rem}
+@media(max-width:680px){.ns-sparta{padding:1rem}.ns-tag{display:none}.ns-process{grid-template-columns:1fr;gap:.85rem}.ns-process li:not(:last-child):after{content:'↓';top:auto;bottom:-.9rem;right:50%;transform:translateX(50%)}.ns-cards{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:no-preference){.ns-expand{transition:transform .15s ease}}
+</style>
+
+<style>
+.ns-sparta .ns-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:.55rem;margin:1.1rem 0 .65rem}.ns-sparta .ns-toolbar>span{margin-right:auto;color:var(--b);font:700 .66rem/1.5 var(--font-mono,monospace);letter-spacing:.08em}.ns-sparta .ns-toolbar button{appearance:none;border:1px solid var(--line);background:#17232d;color:var(--fg);border-radius:5px;padding:.45rem .7rem;cursor:pointer;font:700 .65rem/1.5 var(--font-mono,monospace);letter-spacing:.04em}.ns-sparta .ns-toolbar button:hover{border-color:var(--g);color:var(--g)}.ns-sparta .ns-toolbar button:focus-visible{outline:2px solid var(--g);outline-offset:2px}.ns-sparta .ns-details details[open]{border-color:var(--b)}.ns-sparta .ns-details details[open] summary{background:rgba(102,169,229,.065)}
+</style>
+<script>
+  // Event delegation works after Astro client-side page navigation, too.
+  document.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const button = target.closest<HTMLButtonElement>('[data-sparta-action]');
+    if (!button) return;
+    const figure = button.closest('.ns-sparta');
+    if (!figure) return;
+    const expand = button.dataset.spartaAction === 'expand';
+    figure.querySelectorAll<HTMLDetailsElement>('.ns-details details').forEach((item) => { item.open = expand; });
+  });
+</script>

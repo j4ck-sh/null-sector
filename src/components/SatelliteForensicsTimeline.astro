@@ -1,0 +1,50 @@
+---
+/** NULL SECTOR — hypothetical spacecraft anomaly evidence timeline. No actual incident data. */
+const events = [
+  {id:'01',title:'Command requested',source:'Operator / mission-control records',certainty:'Ground-side record',question:'Who initiated the request, with what privileges, and was it approved?',limit:'An account name alone cannot establish who physically operated the account.'},
+  {id:'02',title:'Command queued',source:'Command service / change history',certainty:'Ground-side record',question:'Did the queued instruction match the approved request, and were any changes recorded?',limit:'Queue records may not capture every transformation or transient failure.'},
+  {id:'03',title:'Uplink attempted',source:'Ground-station transmission logs',certainty:'Transmission evidence',question:'What was transmitted, when, and what does equipment status say about the attempt?',limit:'A transmit log does not prove successful reception by the spacecraft.'},
+  {id:'04',title:'Receipt / acknowledgement',source:'Spacecraft reports, if downlinked',certainty:'Conditional observation',question:'Was the message received, rejected, accepted or acknowledged—and what does that acknowledgement mean?',limit:'Receipt or acceptance is not proof that the requested action executed.'},
+  {id:'05',title:'Operating mode observed',source:'Telemetry / mission data products',certainty:'Outcome evidence',question:'Was the mode change directly reported, or inferred from missing or changed output?',limit:'An unexpected state does not, by itself, establish a cause or an attacker.'},
+];
+---
+<figure class="ns-forensics" aria-labelledby="ns-forensics-title">
+  <header class="ns-head"><div><span class="ns-eyebrow">FORENSIC RECONSTRUCTION / 06</span><h3 id="ns-forensics-title">An anomaly is not an attribution</h3></div><span class="ns-tag">HYPOTHETICAL CASE</span></header>
+  <p class="ns-intro">Imagine a spacecraft entering an unexpected operating mode after a scheduled contact. This is an <strong>investigative sequence, not a measured event timeline</strong>. Expand each checkpoint to see what evidence could establish—and what it could not.</p>
+  <div class="ns-toolbar" aria-label="Forensic timeline controls"><span>INVESTIGATION VIEW</span><button type="button" data-forensics-action="expand">EXPAND ALL</button><button type="button" data-forensics-action="collapse">COLLAPSE ALL</button><button type="button" data-forensics-action="limits" aria-pressed="false">FOCUS ON LIMITS</button></div>
+  <ol class="ns-timeline" aria-label="Potential evidence checkpoints">
+    {events.map((event) => <li><details><summary><span class="ns-marker">{event.id}</span><span class="ns-event"><strong>{event.title}</strong><small>{event.source}</small></span><span class="ns-expand" aria-hidden="true">+</span></summary><div class="ns-content"><span class="ns-kind">{event.certainty}</span><p><strong>Investigative question:</strong> {event.question}</p><p class="ns-limit"><strong>Interpretation limit:</strong> {event.limit}</p></div></details></li>)}
+  </ol>
+  <div class="ns-footer-grid"><section><span>TIME CORRELATION</span><p>Record each source clock, time standard, offset and uncertainty. Delayed telemetry and missed contacts can create gaps.</p></section><section><span>EVIDENCE PRESERVATION</span><p>Retain originals where possible, document collection provenance and hashes, and analyse working copies.</p></section><section><span>ALTERNATIVE CAUSES</span><p>Compare mistaken commands, faults, updates, radiation effects, safety responses and malicious activity.</p></section></div>
+  <figcaption>Fictional investigative teaching aid. No timestamps, spacecraft records or incident findings are represented. Availability and meaning of logs and telemetry vary by mission.</figcaption>
+</figure>
+<style>
+.ns-forensics{--g:var(--green,#47d7a0);--b:var(--blue,#66a9e5);--a:#e4ad68;--line:var(--border,#30434d);--muted:var(--text-muted,#b5c4d0);--dim:var(--text-dim,#91a6b5);--fg:var(--text,#e4edf3);margin:2.5rem 0;padding:1.35rem;border:1px solid var(--line);border-radius:14px;background:var(--bg-raised,#101820);color:var(--fg);font-family:inherit}.ns-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}.ns-eyebrow,.ns-tag,.ns-marker,.ns-kind,.ns-footer-grid section>span{font:700 .66rem/1.5 var(--font-mono,monospace);letter-spacing:.08em}.ns-eyebrow{color:var(--b)}.ns-tag{border:1px solid var(--line);border-radius:4px;padding:.35rem .5rem;color:var(--dim);white-space:nowrap}.ns-head h3{color:var(--fg);font-size:1.15rem;line-height:1.4;margin:.45rem 0 0}.ns-intro{color:var(--muted);font-size:.88rem;line-height:1.7;margin:1rem 0 1.35rem}.ns-intro strong{color:var(--fg)}
+.ns-timeline{list-style:none;margin:0 0 1.2rem;padding:0 0 0 1.25rem;position:relative}.ns-timeline:before{content:'';position:absolute;left:1.95rem;top:1.3rem;bottom:1.3rem;width:2px;background:var(--line)}.ns-timeline li{position:relative;margin-bottom:.55rem}.ns-timeline details{border:1px solid var(--line);border-radius:8px;background:#17232d;overflow:hidden}.ns-timeline summary{cursor:pointer;display:flex;align-items:center;gap:.8rem;padding:.85rem .9rem;list-style:none}.ns-timeline summary::-webkit-details-marker{display:none}.ns-timeline summary::marker{content:''}.ns-timeline summary:hover{background:rgba(102,169,229,.055)}.ns-timeline summary:focus-visible{outline:2px solid var(--g);outline-offset:-3px}.ns-marker{position:relative;z-index:1;flex:none;display:grid;place-items:center;width:2rem;height:2rem;border-radius:50%;border:1px solid var(--b);background:#17232d;color:var(--b)}.ns-event{min-width:0}.ns-event strong{display:block;font-size:.85rem;color:var(--fg)}.ns-event small{display:block;color:var(--muted);font-size:.72rem;line-height:1.5;margin-top:.2rem}.ns-expand{margin-left:auto;color:var(--g);font-size:1.1rem}.ns-timeline details[open] .ns-expand{transform:rotate(45deg)}.ns-content{border-top:1px solid var(--line);padding:.85rem 1rem .95rem 3.7rem}.ns-kind{color:var(--b)}.ns-content p{color:var(--muted);font-size:.8rem;line-height:1.7;margin:.55rem 0 0}.ns-content strong{color:var(--fg)}.ns-content p:last-child strong{color:var(--a)}
+.ns-footer-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem}.ns-footer-grid section{min-width:0;border:1px solid var(--line);border-radius:6px;padding:.85rem;background:rgba(255,255,255,.015)}.ns-footer-grid section>span{color:var(--g)}.ns-footer-grid p{color:var(--muted);font-size:.78rem;line-height:1.65;margin:.4rem 0 0}.ns-forensics figcaption{color:var(--dim);font-size:.73rem;line-height:1.6;margin-top:1rem}
+@media(max-width:680px){.ns-forensics{padding:1rem}.ns-tag{display:none}.ns-timeline{padding-left:0}.ns-timeline:before{left:1.65rem}.ns-content{padding:.85rem .85rem .95rem}.ns-footer-grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:no-preference){.ns-expand{transition:transform .15s ease}}
+</style>
+
+<style>
+.ns-forensics .ns-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:.55rem;margin:1.1rem 0 .8rem}.ns-forensics .ns-toolbar>span{margin-right:auto;color:var(--b);font:700 .66rem/1.5 var(--font-mono,monospace);letter-spacing:.08em}.ns-forensics .ns-toolbar button{appearance:none;border:1px solid var(--line);background:#17232d;color:var(--fg);border-radius:5px;padding:.45rem .7rem;cursor:pointer;font:700 .65rem/1.5 var(--font-mono,monospace);letter-spacing:.04em}.ns-forensics .ns-toolbar button:hover,.ns-forensics .ns-toolbar button[aria-pressed="true"]{border-color:var(--g);color:var(--g)}.ns-forensics .ns-toolbar button:focus-visible{outline:2px solid var(--g);outline-offset:2px}.ns-forensics .ns-timeline details[open]{border-color:var(--b)}.ns-forensics .ns-timeline details[open] summary{background:rgba(102,169,229,.065)}.ns-forensics[data-focus-limits="true"] .ns-content .ns-limit{padding:.7rem .8rem;border-left:3px solid var(--a);background:rgba(228,173,104,.075);color:var(--fg)}.ns-forensics[data-focus-limits="true"] .ns-content>p:not(.ns-limit){display:none}
+</style>
+<script>
+  document.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const button = target.closest<HTMLButtonElement>('[data-forensics-action]');
+    if (!button) return;
+    const figure = button.closest<HTMLElement>('.ns-forensics');
+    if (!figure) return;
+    const action = button.dataset.forensicsAction;
+    if (action === 'limits') {
+      const active = figure.dataset.focusLimits !== 'true';
+      figure.dataset.focusLimits = String(active);
+      button.setAttribute('aria-pressed', String(active));
+      if (active) figure.querySelectorAll<HTMLDetailsElement>('.ns-timeline details').forEach((item) => { item.open = true; });
+    } else {
+      figure.querySelectorAll<HTMLDetailsElement>('.ns-timeline details').forEach((item) => { item.open = action === 'expand'; });
+    }
+  });
+</script>
