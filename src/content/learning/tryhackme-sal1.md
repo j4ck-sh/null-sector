@@ -15,7 +15,7 @@ topics:
   - "Defensive Security"
 skills: []
 featured: true
-draft: false
+draft: true
 references: []
 ---
 

@@ -19,7 +19,7 @@ topics:
   - "Detection Engineering"
 skills: []
 featured: true
-draft: false
+draft: true
 certificate:
   title: "Malware Development Course — Certificate of Completion"
   type: "course-completion"
